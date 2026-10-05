@@ -1,6 +1,7 @@
 "use client";
 
 import { tableFeatures, useTable, type ColumnDef, type RowData } from "@tanstack/react-table";
+import { cn } from "cn";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
 import {
@@ -90,7 +91,7 @@ export function DataTable<T extends RowData>({
         ))}
       </ul>
 
-      <div className="hidden rounded-xl bg-card shadow-card md:block">
+      <div className="hidden overflow-hidden rounded-xl bg-card shadow-card md:block">
         <Table>
           <TableCaption className="sr-only">{caption}</TableCaption>
           <TableHeader>
@@ -148,7 +149,10 @@ function SortButton<T>({ column, sort }: { column: DataColumn<T>; sort: DataTabl
     <button
       type="button"
       onClick={() => sort.onSortChange(key, active && sort.order === "asc" ? "desc" : "asc")}
-      className="-ml-2 inline-flex items-center gap-1 rounded-md px-2 py-1 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      className={cn(
+        "-ml-2 inline-flex items-center gap-1 rounded-md px-2 py-1 hover:bg-background hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        active && "text-primary",
+      )}
     >
       {column.header}
       <Icon className={active ? "size-3.5" : "size-3.5 opacity-40"} aria-hidden />

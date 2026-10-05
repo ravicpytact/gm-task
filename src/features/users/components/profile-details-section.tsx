@@ -52,8 +52,13 @@ export function ProfileDetailsSection() {
             />
           </CardContent>
         ) : (
-          // Keyed by version: after a save (or someone else's), the form starts from the new values.
-          <DetailsForm key={profile.data.etag} user={profile.data.data} etag={profile.data.etag} />
+          // Keyed by the user, not the version: a save must not remount the form, or its own
+          // success step (toast, reset) is dropped by React Query.
+          <DetailsForm
+            key={profile.data.data.id}
+            user={profile.data.data}
+            etag={profile.data.etag}
+          />
         )}
       </Card>
     </FormSection>
@@ -74,7 +79,10 @@ function DetailsForm({ user, etag }: { user: User; etag: string }) {
     update.mutate(
       { etag, body: values },
       {
-        onSuccess: () => toast.success("Profile updated successfully"),
+        onSuccess: (result) => {
+          toast.success("Profile updated successfully");
+          form.reset({ first_name: result.data.first_name, last_name: result.data.last_name });
+        },
         onError: (error) => {
           if (!applyFieldErrors(error, form.setError)) toast.error(toUserMessage(error));
         },

@@ -8,6 +8,7 @@ import {
 import { ApiError } from "@/lib/api";
 import { browserApi } from "@/lib/api/browser";
 import { sessionKeys } from "@/lib/auth/session-query";
+import { invalidateAllExceptSession } from "@/lib/query/invalidate";
 import {
   changeUserStatus,
   deleteUser,
@@ -114,11 +115,8 @@ export function useDeleteUser() {
     onSuccess: (_result, v) => {
       queryClient.removeQueries({ queryKey: userKeys.detail(v.id) });
       queryClient.removeQueries({ queryKey: userKeys.deletePreview(v.id) });
-      // A deleted user's assignments, todos, history and report rows go too: refresh everything
-      // shown about people, not only this list (FE-DATA-003). The session itself is unaffected.
-      return queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] !== sessionKeys.all[0],
-      });
+      // A deleted user's assignments, todos, history and report rows go too (FE-DATA-003).
+      return invalidateAllExceptSession(queryClient);
     },
     onError: (error, v) => refetchOnConflict(queryClient, v.id)(error),
   });

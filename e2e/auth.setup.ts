@@ -12,7 +12,7 @@ setup("sign in once", async ({ page }) => {
   await page.getByRole("button", { name: "Sign in" }).click();
 
   const refused = page.getByText(/Invalid email or password|Too many attempts|inactive/);
-  await expect(page.getByRole("heading", { name: "Dashboard" }).or(refused)).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /^(Hi, .+|Dashboard)$/ }).or(refused)).toBeVisible();
   if (await refused.isVisible()) {
     throw new Error(
       `Sign-in refused: "${await refused.textContent()}". Check FIRST_ADMIN_PASSWORD in ` +

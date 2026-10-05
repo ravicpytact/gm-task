@@ -10,17 +10,23 @@ import {
 
 const ALL = "__all__";
 
-/** A list filter: "Status: All" and its options. `null` means no filter. */
+/**
+ * A list filter: "Status: All" and its options. `null` means no filter.
+ * `includeAll={false}` when the filter always has a value (e.g. Status defaulting to Active, where
+ * "All" is one of the backend's own values and comes in `options`).
+ */
 export function FilterSelect({
   label,
   value,
   options,
   onChange,
+  includeAll = true,
 }: {
   label: string;
   value: string | null;
   options: { value: string; label: string }[];
   onChange: (value: string | null) => void;
+  includeAll?: boolean;
 }) {
   return (
     <Select value={value ?? ALL} onValueChange={(next) => onChange(next === ALL ? null : next)}>
@@ -32,7 +38,7 @@ export function FilterSelect({
         </span>
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={ALL}>All</SelectItem>
+        {includeAll ? <SelectItem value={ALL}>All</SelectItem> : null}
         {options.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}

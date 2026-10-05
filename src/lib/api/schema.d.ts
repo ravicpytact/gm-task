@@ -596,6 +596,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/me/todos/pending-counts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Purpose of this API is to get my pending counts per year and per month
+     * @description Any logged-in user (assignments.todo.read_own). Every year from my first Todo to this year, and the 12 months of `year` (default this year), each with its pending Todos (zeros included).
+     */
+    get: operations["my_pending_counts_v1_me_todos_pending_counts_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/me/todos/summary": {
     parameters: {
       query?: never;
@@ -648,6 +668,26 @@ export interface paths {
      * @description Any logged-in user (assignments.history.read_own). Default range: the current week (Mon-Sun); at most one year. Filter by task and frequency. Newest due date first.
      */
     get: operations["my_history_v1_me_history_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/me/tasks": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Purpose of this API is to list the tasks I have or had an assignment for
+     * @description Any logged-in user (assignments.history.read_own). Current names, A-Z, any assignment status; used by the Task filter of My History.
+     */
+    get: operations["my_tasks_v1_me_tasks_get"];
     put?: never;
     post?: never;
     delete?: never;
@@ -1275,6 +1315,13 @@ export interface components {
       /** Refresh Token */
       refresh_token: string;
     };
+    /** MonthPending */
+    MonthPending: {
+      /** Month */
+      month: string;
+      /** Pending */
+      pending: number;
+    };
     /**
      * MyPermissionsRead
      * @description GET /v1/me/permissions.
@@ -1293,6 +1340,14 @@ export interface components {
       user: components["schemas"]["ReportUserRead"];
       /** Summary */
       summary: components["schemas"]["FrequencyCounts"][];
+    };
+    /**
+     * MyTaskListRead
+     * @description GET /v1/me/tasks: the tasks the caller has or had an assignment for (filters on My History).
+     */
+    MyTaskListRead: {
+      /** Items */
+      items: components["schemas"]["HistoryTaskRead"][];
     };
     /**
      * OAuth2TokenRead
@@ -1413,6 +1468,23 @@ export interface components {
        * Format: uuid
        */
       user_id: string;
+    };
+    /**
+     * PendingCountsRead
+     * @description Year and month views of the pending-dates calendar: pending Todos per year and per month.
+     */
+    PendingCountsRead: {
+      /** Year */
+      year: number;
+      /**
+       * Today
+       * Format: date
+       */
+      today: string;
+      /** Years */
+      years: components["schemas"]["YearPending"][];
+      /** Months */
+      months: components["schemas"]["MonthPending"][];
     };
     /**
      * ProfileUpdate
@@ -1597,6 +1669,13 @@ export interface components {
       message: string;
       error?: components["schemas"]["ErrorInfo"] | null;
     };
+    /** StandardResponse[MyTaskListRead] */
+    StandardResponse_MyTaskListRead_: {
+      data?: components["schemas"]["MyTaskListRead"] | null;
+      /** Message */
+      message: string;
+      error?: components["schemas"]["ErrorInfo"] | null;
+    };
     /** StandardResponse[NoneType] */
     StandardResponse_NoneType_: {
       /** Data */
@@ -1643,6 +1722,13 @@ export interface components {
     /** StandardResponse[PasswordLinkRead] */
     StandardResponse_PasswordLinkRead_: {
       data?: components["schemas"]["PasswordLinkRead"] | null;
+      /** Message */
+      message: string;
+      error?: components["schemas"]["ErrorInfo"] | null;
+    };
+    /** StandardResponse[PendingCountsRead] */
+    StandardResponse_PendingCountsRead_: {
+      data?: components["schemas"]["PendingCountsRead"] | null;
       /** Message */
       message: string;
       error?: components["schemas"]["ErrorInfo"] | null;
@@ -1989,6 +2075,13 @@ export interface components {
       msg: string;
       /** Error Type */
       type: string;
+    };
+    /** YearPending */
+    YearPending: {
+      /** Year */
+      year: number;
+      /** Pending */
+      pending: number;
     };
   };
   responses: never;
@@ -3232,6 +3325,39 @@ export interface operations {
       };
     };
   };
+  my_pending_counts_v1_me_todos_pending_counts_get: {
+    parameters: {
+      query?: {
+        year?: number | null;
+      };
+      header?: {
+        "If-Match"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StandardResponse_PendingCountsRead_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   my_summary_v1_me_todos_summary_get: {
     parameters: {
       query?: {
@@ -3337,6 +3463,37 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["StandardResponse_PaginatedResponse_HistoryItemRead__"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  my_tasks_v1_me_tasks_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        "If-Match"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StandardResponse_MyTaskListRead_"];
         };
       };
       /** @description Validation Error */

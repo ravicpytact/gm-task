@@ -29,6 +29,8 @@ type ConfirmDialogProps = {
   children?: ReactNode;
   /** Keeps the confirm button off: the resource's version is still loading, or a check is unmet. */
   confirmDisabled?: boolean;
+  /** Screen-specific words for backend error codes, e.g. a 412 "changed by someone else". */
+  errorMessages?: Partial<Record<string, string>>;
 };
 
 /** The one confirmation for destructive actions (FE-UI-004). Focus starts on Cancel. */
@@ -42,6 +44,7 @@ export function ConfirmDialog({
   onConfirm,
   children,
   confirmDisabled = false,
+  errorMessages,
 }: ConfirmDialogProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +62,7 @@ export function ConfirmDialog({
       await onConfirm();
       onOpenChange(false);
     } catch (caught) {
-      setError(toUserMessage(caught));
+      setError(toUserMessage(caught, errorMessages));
     } finally {
       setPending(false);
     }

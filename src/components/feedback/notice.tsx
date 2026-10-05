@@ -1,8 +1,8 @@
-import { CircleAlert, CircleCheck, Info } from "lucide-react";
+import { CircleAlert, CircleCheck, Info, TriangleAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export type NoticeTone = "info" | "success" | "error";
+export type NoticeTone = "info" | "success" | "warning" | "error";
 
 const TONES: Record<
   NoticeTone,
@@ -12,6 +12,11 @@ const TONES: Record<
   success: {
     icon: CircleCheck,
     className: "border-success/30 bg-success/5 text-success-foreground",
+    role: "status",
+  },
+  warning: {
+    icon: TriangleAlert,
+    className: "border-warning/30 bg-warning/5 text-warning-foreground",
     role: "status",
   },
   error: {

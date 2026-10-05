@@ -2,6 +2,7 @@
 
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { toast } from "@/components/feedback/toast";
+import { CHANGED_ELSEWHERE } from "../constants";
 import { useChangeUserStatus, useUser } from "../queries";
 import type { User } from "../types";
 import { fullName } from "../utils";
@@ -28,12 +29,13 @@ export function ChangeStatusDialog({
       title={deactivate ? `Deactivate ${name}?` : `Activate ${name}?`}
       description={
         deactivate
-          ? `${user.first_name} will be logged out immediately and won't get new Todos. Their tasks and history are kept.`
-          : `${user.first_name} can log in again. Todos restart from today; missed days are not filled in.`
+          ? `${user.first_name} will be signed out immediately and won't get new Todos. Their tasks and history are kept.`
+          : `${user.first_name} can sign in again. Todos restart from today; missed days are not filled in.`
       }
       confirmLabel={deactivate ? "Deactivate" : "Activate"}
       variant={deactivate ? "destructive" : "default"}
-      confirmDisabled={!current.data}
+      confirmDisabled={!current.data || !current.isFetchedAfterMount}
+      errorMessages={CHANGED_ELSEWHERE}
       onConfirm={async () => {
         if (!current.data) return;
         await change.mutateAsync({ id: user.id, etag: current.data.etag, status: target });

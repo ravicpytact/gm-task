@@ -91,7 +91,7 @@ export function ChangePasswordSection() {
           </CardContent>
           <CardFooter className="mt-5 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between md:justify-end">
             {/* Phones do not show the section's explanation column, so the note stays here. */}
-            <p className="type-caption md:hidden">Other devices will be logged out.</p>
+            <p className="type-caption md:hidden">Other devices will be signed out.</p>
             <Button type="submit" disabled={change.isPending}>
               {change.isPending ? "Changing…" : "Change password"}
             </Button>

@@ -119,7 +119,7 @@ test.describe("users, as Admin", () => {
     await page.getByRole("menuitem", { name: "Deactivate" }).click();
     const deactivate = page.getByRole("alertdialog");
     await expect(deactivate).toContainText(/Deactivate .+\?/);
-    await expect(deactivate).toContainText("will be logged out immediately");
+    await expect(deactivate).toContainText("will be signed out immediately");
     await deactivate.getByRole("button", { name: "Cancel" }).click();
     await expect(deactivate).toBeHidden();
 
@@ -161,5 +161,46 @@ test.describe("users, as Admin", () => {
       "true",
     );
     await expect(page.getByLabel("Current password")).toBeVisible();
+  });
+});
+
+test.describe("my profile, saving", () => {
+  useSavedSession();
+  const SUFFIX = " E2E";
+
+  // If a run stops halfway, put the signed-in Admin's last name back.
+  test.afterEach(async ({ request, baseURL }) => {
+    const me = await request.get("/api/backend/v1/me");
+    if (!me.ok()) return;
+    const lastName: string = (await me.json()).data.last_name;
+    if (!lastName.endsWith(SUFFIX)) return;
+    await request.patch("/api/backend/v1/me", {
+      headers: { "If-Match": me.headers()["etag"] ?? "", Origin: baseURL! },
+      data: { last_name: lastName.slice(0, -SUFFIX.length) },
+    });
+  });
+
+  test("saving the name shows a confirmation, updates the header, and can be undone", async ({
+    page,
+  }) => {
+    await page.goto("/profile");
+    const lastName = page.getByLabel("Last name");
+    const original = await lastName.inputValue();
+    const save = page.getByRole("button", { name: "Save" });
+
+    await lastName.fill(original + SUFFIX);
+    await save.click();
+    await expect(visible(page, "Profile updated successfully")).toBeVisible();
+    await expect(save).toBeDisabled(); // the form now starts from the saved values
+    await expect(page.getByRole("button", { name: /Account menu/ })).toHaveAccessibleName(
+      new RegExp(`${original}${SUFFIX}$`),
+    );
+
+    await lastName.fill(original);
+    await save.click();
+    await expect(visible(page, "Profile updated successfully").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Account menu/ })).toHaveAccessibleName(
+      new RegExp(`${original}$`),
+    );
   });
 });

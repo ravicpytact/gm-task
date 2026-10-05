@@ -2725,6 +2725,79 @@
         }
       }
     },
+    "/v1/me/todos/pending-counts": {
+      "get": {
+        "tags": [
+          "My Todos"
+        ],
+        "summary": "Purpose of this API is to get my pending counts per year and per month",
+        "description": "Any logged-in user (assignments.todo.read_own). Every year from my first Todo to this year, and the 12 months of `year` (default this year), each with its pending Todos (zeros included).",
+        "operationId": "my_pending_counts_v1_me_todos_pending_counts_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 2000
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponse_PendingCountsRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/me/todos/summary": {
       "get": {
         "tags": [
@@ -3009,6 +3082,61 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/StandardResponse_PaginatedResponse_HistoryItemRead__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/tasks": {
+      "get": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Purpose of this API is to list the tasks I have or had an assignment for",
+        "description": "Any logged-in user (assignments.history.read_own). Current names, A-Z, any assignment status; used by the Task filter of My History.",
+        "operationId": "my_tasks_v1_me_tasks_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponse_MyTaskListRead_"
                 }
               }
             }
@@ -4894,6 +5022,24 @@
         ],
         "title": "LogoutRequest"
       },
+      "MonthPending": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "title": "Month"
+          },
+          "pending": {
+            "type": "integer",
+            "title": "Pending"
+          }
+        },
+        "type": "object",
+        "required": [
+          "month",
+          "pending"
+        ],
+        "title": "MonthPending"
+      },
       "MyPermissionsRead": {
         "properties": {
           "role": {
@@ -4939,6 +5085,23 @@
         ],
         "title": "MyReportRead",
         "description": "GET /v1/me/report — the caller's own counts."
+      },
+      "MyTaskListRead": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryTaskRead"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "MyTaskListRead",
+        "description": "GET /v1/me/tasks: the tasks the caller has or had an assignment for (filters on My History)."
       },
       "OAuth2TokenRead": {
         "properties": {
@@ -5320,6 +5483,42 @@
           "user_id"
         ],
         "title": "PasswordLinkRead"
+      },
+      "PendingCountsRead": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "today": {
+            "type": "string",
+            "format": "date",
+            "title": "Today"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/YearPending"
+            },
+            "type": "array",
+            "title": "Years"
+          },
+          "months": {
+            "items": {
+              "$ref": "#/components/schemas/MonthPending"
+            },
+            "type": "array",
+            "title": "Months"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "today",
+          "years",
+          "months"
+        ],
+        "title": "PendingCountsRead",
+        "description": "Year and month views of the pending-dates calendar: pending Todos per year and per month."
       },
       "ProfileUpdate": {
         "properties": {
@@ -5900,6 +6099,39 @@
         ],
         "title": "StandardResponse[MyReportRead]"
       },
+      "StandardResponse_MyTaskListRead_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MyTaskListRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "StandardResponse[MyTaskListRead]"
+      },
       "StandardResponse_NoneType_": {
         "properties": {
           "data": {
@@ -6124,6 +6356,39 @@
           "message"
         ],
         "title": "StandardResponse[PasswordLinkRead]"
+      },
+      "StandardResponse_PendingCountsRead_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PendingCountsRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "StandardResponse[PendingCountsRead]"
       },
       "StandardResponse_ReportRead_": {
         "properties": {
@@ -7168,6 +7433,24 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "YearPending": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "pending": {
+            "type": "integer",
+            "title": "Pending"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "pending"
+        ],
+        "title": "YearPending"
       }
     },
     "securitySchemes": {

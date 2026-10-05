@@ -19,6 +19,17 @@ export type FormControlProps<T extends FieldValues, N extends FieldPath<T>> = Co
   "aria-describedby"?: string;
 };
 
+/** The label and message wiring alone, for controls that take a value but not a ref (pickers). */
+export function controlAria<T extends FieldValues, N extends FieldPath<T>>(
+  control: FormControlProps<T, N>,
+) {
+  return {
+    id: control.id,
+    "aria-invalid": control["aria-invalid"],
+    "aria-describedby": control["aria-describedby"],
+  };
+}
+
 type FormFieldProps<T extends FieldValues, N extends FieldPath<T>> = {
   control: Control<T>;
   name: N;

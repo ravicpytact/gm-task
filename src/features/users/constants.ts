@@ -41,3 +41,11 @@ export const userListParsers = {
 /** Which part of My Profile is open (?tab=), so a link can open the Password tab directly. */
 export const PROFILE_TABS = ["details", "password"] as const;
 export const profileTabParser = parseAsStringLiteral(PROFILE_TABS).withDefault("details");
+
+/** The contract's words for a 412 on any user write (docs/04-design/users/ui_data_contract.md). */
+export const CHANGED_ELSEWHERE = {
+  PRECONDITION_FAILED: "This user was changed by someone else. Refresh and try again.",
+};
+
+/** How many items a searchable picker loads per search (the backend allows up to 100). */
+export const PICKER_PAGE_SIZE = 50;

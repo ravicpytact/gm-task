@@ -63,7 +63,7 @@ test.describe("signing in and out", () => {
   // Its own real sign-in: signing out revokes the session, so it must not use the shared one.
   test("sign in, see your name, sign out, and Back does not show the app", async ({ page }) => {
     await signIn(page);
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /^(Hi, .+|Dashboard)$/ })).toBeVisible();
     await openAccountMenu(page);
     await expect(page.getByRole("menu")).toContainText(credentials.email);
     await page.getByRole("menuitem", { name: "Sign out" }).click();
@@ -71,7 +71,7 @@ test.describe("signing in and out", () => {
 
     // Sign-in and sign-out replace their history entries, so Back never lands on the app.
     await page.goBack();
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 1, name: /^(Hi, .+|Dashboard)$/ })).toHaveCount(0);
     // And the session is really over: the app asks to sign in again.
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login/);

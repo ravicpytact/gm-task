@@ -1,17 +1,14 @@
-import { EmptyState } from "@/components/feedback/empty-state";
-import { PageHeader } from "@/components/layout/page-header";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { prefetchDashboard } from "@/features/assignments/server";
+import { DashboardScreen } from "@/features/dashboard";
 
 export const metadata = { title: "Dashboard" };
 
-// Placeholder until the dashboard feature exists (development plan 7.2).
-export default function DashboardPage() {
+export default async function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
+  const queryClient = await prefetchDashboard(await searchParams);
   return (
-    <>
-      <PageHeader title="Dashboard" />
-      <EmptyState
-        title="Nothing here yet"
-        description="The dashboard is the next feature to be built."
-      />
-    </>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <DashboardScreen />
+    </HydrationBoundary>
   );
 }

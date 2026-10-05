@@ -30,6 +30,42 @@ export function formatDate(value: DateInput): string {
   return `${p.day} ${MONTHS[Number(p.month) - 1]} ${p.year}`;
 }
 
+const LONG_MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+/** "October 2026" for the month "2026-10". */
+export function formatMonth(month: string): string {
+  return `${LONG_MONTHS[Number(month.slice(5, 7)) - 1]} ${month.slice(0, 4)}`;
+}
+
+/** "Oct" for the month "2026-10". */
+export function formatMonthShort(month: string): string {
+  return MONTHS[Number(month.slice(5, 7)) - 1] ?? month;
+}
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Thu 01 Oct (a calendar day, e.g. the next due dates of an assignment) */
+export function formatWeekdayDate(value: DateInput): string {
+  const p = parts(value, { day: "2-digit", month: "2-digit", year: "numeric", weekday: "short" });
+  const isDay = typeof value === "string" && CALENDAR_DAY.test(value);
+  const date = typeof value === "string" ? new Date(isDay ? `${value}T00:00:00Z` : value) : value;
+  const weekday = isDay ? WEEKDAYS[date.getUTCDay()] : p.weekday;
+  return `${weekday} ${p.day} ${MONTHS[Number(p.month) - 1]}`;
+}
+
 /** 09:30 AM */
 export function formatTime(value: DateInput): string {
   const p = parts(value, { hour: "2-digit", minute: "2-digit", hour12: true });
@@ -60,3 +96,5 @@ const numberFormat = new Intl.NumberFormat(DISPLAY_LOCALE);
 export function formatNumber(value: number): string {
   return numberFormat.format(value);
 }
+
+export * from "./calendar-days";

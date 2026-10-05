@@ -265,6 +265,10 @@ export default defineConfig([
                 "Use @/components/ui/sonner or toast from @/components/feedback (FE-UI-002).",
             },
             { name: "vaul", message: "Use @/components/ui/drawer (FE-UI-002)." },
+            {
+              name: "cmdk",
+              message: "Use @/components/form/searchable-select or @/components/ui/command (FE-UI-002).",
+            },
             { name: "@tanstack/react-table", message: "Use @/components/data-table (FE-UI-002)." },
           ],
           patterns: [
