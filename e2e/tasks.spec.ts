@@ -17,10 +17,10 @@ async function deleteTestTasks(request: APIRequestContext, baseURL: string) {
   const items: { id: string; name: string }[] = (await list.json()).data.items;
   for (const task of items.filter((t) => t.name.startsWith(PREFIX))) {
     const detail = await request.get(`/api/backend/v1/tasks/${task.id}`);
-    const etag = detail.headers()["etag"];
+    const etag = detail.headers()["x-etag"];
     if (!etag) continue;
     await request.delete(`/api/backend/v1/tasks/${task.id}`, {
-      headers: { "If-Match": etag, Origin: baseURL },
+      headers: { "X-If-Match": etag, Origin: baseURL },
     });
   }
 }

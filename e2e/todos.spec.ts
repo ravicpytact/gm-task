@@ -34,10 +34,10 @@ async function createAssignedTask(
 }
 
 async function deleteTask(request: APIRequestContext, baseURL: string, id: string) {
-  const etag = (await request.get(`/api/backend/v1/tasks/${id}`)).headers()["etag"];
+  const etag = (await request.get(`/api/backend/v1/tasks/${id}`)).headers()["x-etag"];
   if (!etag) return;
   await request.delete(`/api/backend/v1/tasks/${id}`, {
-    headers: { "If-Match": etag, Origin: baseURL },
+    headers: { "X-If-Match": etag, Origin: baseURL },
   });
 }
 

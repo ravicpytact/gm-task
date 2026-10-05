@@ -175,7 +175,7 @@ test.describe("my profile, saving", () => {
     const lastName: string = (await me.json()).data.last_name;
     if (!lastName.endsWith(SUFFIX)) return;
     await request.patch("/api/backend/v1/me", {
-      headers: { "If-Match": me.headers()["etag"] ?? "", Origin: baseURL! },
+      headers: { "X-If-Match": me.headers()["x-etag"] ?? "", Origin: baseURL! },
       data: { last_name: lastName.slice(0, -SUFFIX.length) },
     });
   });

@@ -14,15 +14,8 @@ import { refreshSession } from "./refresh";
 /** Every /api/backend answer: private to this browser, and checked with the server before reuse. */
 export const API_CACHE_CONTROL = "private, no-cache";
 const SAFE_METHODS = new Set(["GET", "HEAD"]);
-const REQUEST_HEADERS = ["accept", "content-type", "if-match", "if-none-match", "x-request-id"];
-const RESPONSE_HEADERS = [
-  "content-type",
-  "content-disposition",
-  "etag",
-  "last-modified",
-  "retry-after",
-  "x-request-id",
-];
+const REQUEST_HEADERS = ["accept", "content-type", "x-request-id"];
+const RESPONSE_HEADERS = ["content-type", "content-disposition", "retry-after", "x-request-id"];
 
 type ProxyContext = { params: Promise<{ path: string[] }> };
 
@@ -80,6 +73,10 @@ export async function callWithSession(
 
   if (state.renewed) await setSessionCookies(state.renewed);
   const headers = pick(response.headers, RESPONSE_HEADERS);
+  // The version goes back as X-ETag only: an edge in front of this server (e.g. Vercel) would answer a
+  // request carrying If-Match with its own 412 when the response's ETag differs: after every save.
+  const version = response.headers.get("etag");
+  if (version) headers.set("x-etag", version);
   // Never let the browser reuse an answer without asking: it would hand back an old ETag after a
   // save (a false 412 "changed by someone else"). It may keep a copy and revalidate (304).
   headers.set("cache-control", API_CACHE_CONTROL);
@@ -107,12 +104,20 @@ export async function forwardToBackend(
   return callWithSession(({ accessToken }) =>
     fetch(target, {
       method: request.method,
-      headers: pick(request.headers, REQUEST_HEADERS, accessToken),
+      headers: towardsBackend(request.headers, accessToken),
       ...(body ? { body } : {}),
       cache: "no-store",
       redirect: "manual",
     }),
   );
+}
+
+/** The browser's headers for the backend; its X-If-Match (see lib/api/client.ts) becomes If-Match. */
+function towardsBackend(source: Headers, accessToken: string | undefined): Headers {
+  const headers = pick(source, REQUEST_HEADERS, accessToken);
+  const version = source.get("x-if-match");
+  if (version) headers.set("if-match", version);
+  return headers;
 }
 
 export function backendUrl(path: string): URL {

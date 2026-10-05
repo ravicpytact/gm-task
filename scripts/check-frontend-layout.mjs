@@ -167,7 +167,8 @@ if (existsSync(".env.example")) {
 }
 
 // --- FE-AUTH-002: the browser client talks to the app's own server ----------------------------
-if (!/createApiClient\(\s*["']\/api\/backend["']\s*\)/.test(read("src/lib/api/browser.ts"))) {
+// The base URL must be "/api/backend"; further arguments (headers, options) are allowed.
+if (!/createApiClient\(\s*["']\/api\/backend["']\s*[,)]/.test(read("src/lib/api/browser.ts"))) {
   find(
     "FE-AUTH-002",
     "src/lib/api/browser.ts",

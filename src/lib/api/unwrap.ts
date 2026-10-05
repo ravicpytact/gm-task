@@ -1,3 +1,4 @@
+import { VERSION_HEADER } from "./client";
 import { ApiError } from "./errors";
 
 /** What an openapi-fetch call resolves to, seen through the backend's envelope. */
@@ -48,7 +49,8 @@ export async function unwrapWithEtag<E extends Envelope>(
   call: Promise<ClientResult<E>>,
 ): Promise<{ data: Payload<E>; etag: string }> {
   const result = await settle(call);
-  const etag = result.response.headers.get("ETag");
+  // Straight from the backend: ETag. Through the app server (browser): X-ETag (see client.ts).
+  const etag = result.response.headers.get("ETag") ?? result.response.headers.get(VERSION_HEADER);
   if (!etag) {
     throw new ApiError(
       result.response.status,
