@@ -11,6 +11,8 @@ import {
 import { assertSameOrigin } from "./origin";
 import { refreshSession } from "./refresh";
 
+/** Every /api/backend answer: private to this browser, and checked with the server before reuse. */
+export const API_CACHE_CONTROL = "private, no-cache";
 const SAFE_METHODS = new Set(["GET", "HEAD"]);
 const REQUEST_HEADERS = ["accept", "content-type", "if-match", "if-none-match", "x-request-id"];
 const RESPONSE_HEADERS = [
@@ -77,10 +79,11 @@ export async function callWithSession(
   }
 
   if (state.renewed) await setSessionCookies(state.renewed);
-  return new Response(response.body, {
-    status: response.status,
-    headers: pick(response.headers, RESPONSE_HEADERS),
-  });
+  const headers = pick(response.headers, RESPONSE_HEADERS);
+  // Never let the browser reuse an answer without asking: it would hand back an old ETag after a
+  // save (a false 412 "changed by someone else"). It may keep a copy and revalidate (304).
+  headers.set("cache-control", API_CACHE_CONTROL);
+  return new Response(response.body, { status: response.status, headers });
 }
 
 /**
@@ -128,5 +131,8 @@ function pick(source: Headers, names: string[], bearer?: string): Headers {
 
 /** An error in the backend's own envelope, so the API client treats it like any other. */
 export function envelope(status: number, code: string, message: string): Response {
-  return Response.json({ error: { code, details: [] }, message }, { status });
+  return Response.json(
+    { error: { code, details: [] }, message },
+    { status, headers: { "cache-control": API_CACHE_CONTROL } },
+  );
 }
