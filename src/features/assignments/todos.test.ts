@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { formatMonth, formatMonthShort } from "@/lib/format";
+import { OTHER_CHOICE } from "./constants";
 import { otherAnswerSchema, timeAnswerSchema } from "./schemas";
 import {
   addDays,
   answerText,
   calendarWeeks,
+  draftAnswer,
   shiftMonth,
   toHistoryQuery,
   toTodoListQuery,
@@ -86,5 +88,39 @@ describe("answers (contract §3–4)", () => {
         "Enter a whole number of 5 or more.",
       );
     }
+  });
+});
+
+describe("answer drafts (choose, then Submit)", () => {
+  const choiceType = { accepts_time: false };
+  const timeType = { accepts_time: true };
+  const draft = (choice: string | null, text = "") => ({ taskType: "X", choice, text });
+
+  it("sends a choice as it is", () => {
+    expect(draftAnswer(draft("YES"), choiceType)).toEqual({
+      state: "ready",
+      body: { response_value: "YES", is_other: false },
+    });
+  });
+  it("waits for a value on Other and Time", () => {
+    expect(draftAnswer(draft(OTHER_CHOICE), choiceType)).toEqual({ state: "empty" });
+    expect(draftAnswer(draft(null), timeType)).toEqual({ state: "empty" });
+  });
+  it("checks Other and Time by the backend's rules", () => {
+    expect(draftAnswer(draft(OTHER_CHOICE, "4"), choiceType)).toEqual({
+      state: "invalid",
+      message: "Enter a whole number of 5 or more.",
+    });
+    expect(draftAnswer(draft(OTHER_CHOICE, " 10 "), choiceType)).toEqual({
+      state: "ready",
+      body: { response_value: "10", is_other: true },
+    });
+    expect(draftAnswer(draft(null, "06:30"), timeType)).toEqual({
+      state: "ready",
+      body: { response_value: "06:30", is_other: false },
+    });
+  });
+  it("ignores a draft until its task type is known", () => {
+    expect(draftAnswer(draft("YES"), undefined)).toEqual({ state: "empty" });
   });
 });

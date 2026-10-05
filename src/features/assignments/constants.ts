@@ -108,3 +108,6 @@ export const TODO_MESSAGES = {
   TODO_ALREADY_COMPLETED: "This Todo was already answered.",
   TODO_NOT_FOUND: "This Todo is no longer there.",
 };
+
+/** The "Other" choice of a Number Todo, while its value is being typed (never sent as such). */
+export const OTHER_CHOICE = "__other__";

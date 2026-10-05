@@ -20,6 +20,7 @@ import { useMyTodos } from "../queries";
 import type { Frequency, Todo } from "../types";
 import { toTodoListQuery } from "../utils";
 import { TodoAnswer } from "./todo-answer";
+import { SubmitAnswersBar } from "./submit-answers-bar";
 import { TodoCard } from "./todo-card";
 
 /**
@@ -82,7 +83,7 @@ export function TodoList({ date }: { date: string | undefined }) {
         </h2>
         <p className="flex items-center gap-1.5 type-caption">
           <Lock className="size-3.5" aria-hidden />
-          Answers can&apos;t be changed.
+          Choose your answers, then Submit. Answers can&apos;t be changed afterwards.
         </p>
       </div>
 
@@ -148,6 +149,8 @@ export function TodoList({ date }: { date: string | undefined }) {
           ) : null}
         </>
       )}
+      {/* After the list, so it rests below the last Todo and stays in view while scrolling. */}
+      <SubmitAnswersBar />
     </section>
   );
 }

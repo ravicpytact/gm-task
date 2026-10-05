@@ -189,29 +189,45 @@ export const useMyTasks = (enabled = true) => useQuery({ ...todoQueries.myTasks(
 
 type TodoPage = Awaited<ReturnType<typeof listMyTodos>>;
 
+/** One answer's outcome: sent, already answered or gone (it leaves the list), or failed (it stays). */
+export type AnswerOutcome =
+  | { id: string; result: "saved" }
+  | { id: string; result: "gone"; error: ApiError }
+  | { id: string; result: "failed"; error: unknown };
+
+/** Already answered on another device (409), or no longer there (404): it leaves the list too. */
+const isGone = (error: unknown): error is ApiError =>
+  error instanceof ApiError && (error.status === 409 || error.status === 404);
+
 /**
- * Answer a Todo. It leaves the list at once (contract §3); then every count, the calendar, history
- * and reports refresh (FE-DATA-003). Already answered elsewhere (409) or gone (404): it leaves too.
+ * Submit the chosen answers (contract §3): one request per Todo, sent together, each succeeding or
+ * failing on its own. Sent and gone Todos leave the list at once; then every count, the calendar,
+ * history and reports refresh, once (FE-DATA-003).
  */
-export function useAnswerTodo() {
+export function useAnswerTodos() {
   const queryClient = useQueryClient();
-  const removeFromLists = (todoId: string) =>
-    queryClient.setQueriesData<TodoPage>({ queryKey: todoKeys.lists() }, (page) =>
-      page && page.items.some((t) => t.id === todoId)
-        ? { ...page, items: page.items.filter((t) => t.id !== todoId), total: page.total - 1 }
-        : page,
-    );
   return useMutation({
-    mutationFn: (v: { id: string; body: TodoAnswer }) => answerTodo(browserApi, v.id, v.body),
-    onSuccess: (_result, v) => {
-      removeFromLists(v.id);
-      return invalidateAllExceptSession(queryClient);
+    mutationFn: async (answers: { id: string; body: TodoAnswer }[]): Promise<AnswerOutcome[]> => {
+      const settled = await Promise.allSettled(
+        answers.map((a) => answerTodo(browserApi, a.id, a.body)),
+      );
+      return settled.map((s, i): AnswerOutcome => {
+        const id = answers[i]!.id;
+        if (s.status === "fulfilled") return { id, result: "saved" };
+        return isGone(s.reason)
+          ? { id, result: "gone", error: s.reason }
+          : { id, result: "failed", error: s.reason };
+      });
     },
-    onError: (error, v) => {
-      if (error instanceof ApiError && (error.status === 409 || error.status === 404)) {
-        removeFromLists(v.id);
-        void invalidateAllExceptSession(queryClient);
-      }
+    onSuccess: (outcomes) => {
+      const leaving = new Set(outcomes.filter((o) => o.result !== "failed").map((o) => o.id));
+      if (leaving.size === 0) return;
+      queryClient.setQueriesData<TodoPage>({ queryKey: todoKeys.lists() }, (page) => {
+        if (!page) return page;
+        const items = page.items.filter((t) => !leaving.has(t.id));
+        return { ...page, items, total: page.total - (page.items.length - items.length) };
+      });
+      return invalidateAllExceptSession(queryClient);
     },
   });
 }

@@ -19,7 +19,7 @@ export const TOUR_STEPS: TourStep[] = [
     target: '[data-tour="todo-list"]',
     title: "Answer your Todos",
     description:
-      "Answer each Todo right here: tap Yes or No, a choice, or enter a value. Answers can't be changed afterwards.",
+      "Choose an answer for each Todo (Yes or No, a choice, or a value), then press Submit to send them together. Answers can't be changed afterwards.",
   },
   {
     target: '[data-tour="date-pill"]',

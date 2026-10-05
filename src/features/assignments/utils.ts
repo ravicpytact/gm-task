@@ -11,6 +11,7 @@ import {
   ASSIGNMENTS_PAGE_SIZE,
   FREQUENCY_LABELS,
   HISTORY_PAGE_SIZE,
+  OTHER_CHOICE,
   TODOS_PAGE_SIZE,
   WEEKDAY_LABELS,
   WEEKDAYS,
@@ -26,9 +27,11 @@ import type {
   CopyResult,
   Frequency,
   MyHistoryQuery,
+  TodoAnswer,
   TodoListQuery,
   Weekday,
 } from "./types";
+import { otherAnswerSchema, timeAnswerSchema } from "./schemas";
 
 export type AssignmentListParams = inferParserType<typeof assignmentListParsers>;
 
@@ -165,4 +168,41 @@ export function answerText(
   return (
     type?.options.find((o) => o.value === answer.response_value)?.label ?? answer.response_value
   );
+}
+
+// --- Answer drafts: chosen on screen, sent together by Submit -----------------------------------
+
+/** What someone has chosen or typed for one Todo, before Submit. */
+export type AnswerDraft = {
+  /** The task type, so a draft can be checked and sent from any day or page of the list. */
+  taskType: string;
+  choice: string | null;
+  text: string;
+};
+
+type AnswerType = { accepts_time: boolean };
+
+export type DraftResult =
+  { state: "empty" } | { state: "invalid"; message: string } | { state: "ready"; body: TodoAnswer };
+
+/**
+ * A draft as an answer to send (contract §3). A choice is ready at once; Time and Other need a
+ * value, checked by the same rules as the backend's.
+ */
+export function draftAnswer(
+  draft: AnswerDraft | undefined,
+  type: AnswerType | undefined,
+): DraftResult {
+  if (!draft || !type) return { state: "empty" };
+  const typed = type.accepts_time || draft.choice === OTHER_CHOICE;
+  if (!typed) {
+    return draft.choice
+      ? { state: "ready", body: { response_value: draft.choice, is_other: false } }
+      : { state: "empty" };
+  }
+  if (!draft.text.trim()) return { state: "empty" };
+  const parsed = (type.accepts_time ? timeAnswerSchema : otherAnswerSchema).safeParse(draft.text);
+  return parsed.success
+    ? { state: "ready", body: { response_value: parsed.data, is_other: !type.accepts_time } }
+    : { state: "invalid", message: parsed.error.issues[0]?.message ?? "Check this answer." };
 }

@@ -78,40 +78,49 @@ test.describe("my Todos", () => {
     await page.goto(`/dashboard?search=${encodeURIComponent(run)}`);
     await expect(page.getByRole("heading", { level: 1, name: /^Hi, / })).toBeVisible();
     await expect(page.getByText(/^Pending for \d\d \w{3} \d{4}$/)).toBeVisible();
-    await expect(page.getByText("Answers can't be changed.")).toBeVisible();
+    await expect(
+      page.getByText("Choose your answers, then Submit. Answers can't be changed afterwards."),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: `Daily: ${before} pending` })).toBeVisible();
 
-    // Yes-No and Food answer with one tap.
-    await page
+    // Choosing sends nothing: the answer is only marked, and tapping it again unchooses it.
+    const bar = page.getByRole("region", { name: "Submit answers" });
+    const yes = page
       .getByRole("group", { name: `Answer ${bed.name}` })
-      .getByRole("button", { name: "Yes" })
-      .click();
-    await expect(visible(page, "Todo updated successfully").first()).toBeVisible();
-    await expect(visible(page, bed.name)).toHaveCount(0);
+      .getByRole("button", { name: "Yes" });
+    await yes.click();
+    await expect(yes).toHaveAttribute("aria-pressed", "true");
+    await expect(bar).toContainText("1 answer ready");
+    await yes.click();
+    await expect(bar).toBeHidden();
+
+    // Choose four answers: Yes, Average, Other with a number, and a time.
+    await yes.click();
     await page
       .getByRole("group", { name: `Answer ${lunch.name}` })
       .getByRole("button", { name: "Average" })
       .click();
-    await expect(visible(page, lunch.name)).toHaveCount(0);
-
-    // Number → Other: a whole number of 5 or more.
     await page
       .getByRole("group", { name: `Answer ${pullUps.name}` })
       .getByRole("button", { name: "Other" })
       .click();
     const other = page.getByLabel(`Other number for ${pullUps.name}`).filter({ visible: true });
     await other.fill("4");
-    await other.press("Enter");
-    await expect(visible(page, "Enter a whole number of 5 or more.")).toBeVisible();
-    await other.fill("10");
-    await other.press("Enter");
-    await expect(visible(page, pullUps.name)).toHaveCount(0);
+    await page.getByLabel(`Time for ${time.name}`).filter({ visible: true }).fill("06:30");
+    await expect(bar).toContainText("4 answers ready");
+    await expect(visible(page, bed.name)).toHaveCount(1); // still pending: nothing sent yet
 
-    // Time: a 24-hour time and Save.
-    const timeInput = page.getByLabel(`Time for ${time.name}`).filter({ visible: true });
-    await timeInput.fill("06:30");
-    await timeInput.press("Enter");
+    // A bad value stops Submit; nothing is sent.
+    await bar.getByRole("button", { name: "Submit 4" }).click();
+    await expect(visible(page, "Enter a whole number of 5 or more.")).toBeVisible();
+    await expect(visible(page, bed.name)).toHaveCount(1);
+
+    // Fixed: one Submit sends all four; they leave the list and the counts drop.
+    await other.fill("10");
+    await bar.getByRole("button", { name: "Submit 4" }).click();
+    await expect(visible(page, "4 answers saved").first()).toBeVisible();
     await expect(page.getByText("No pending Todos match your search.")).toBeVisible();
+    await expect(bar).toBeHidden();
     await expect(page.getByRole("button", { name: `Daily: ${before - 4} pending` })).toBeVisible();
 
     // History (an Admin sees everyone's) shows the answers as words, filtered by task.
