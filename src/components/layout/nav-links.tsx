@@ -38,6 +38,7 @@ export function SidebarNav({
         const link = (
           <Link
             href={href}
+            data-nav={href}
             aria-current={isActive(pathname, href) ? "page" : undefined}
             className="flex items-center gap-3 rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground aria-[current=page]:bg-sidebar-primary aria-[current=page]:text-sidebar-primary-foreground aria-[current=page]:shadow-card"
           >
@@ -71,6 +72,7 @@ export function BottomNav() {
           <li key={href} className="flex-1">
             <Link
               href={href}
+              data-nav={href}
               aria-current={isActive(pathname, href) ? "page" : undefined}
               className="flex min-h-14 flex-col items-center justify-center gap-1 text-xs text-muted-foreground aria-[current=page]:font-medium aria-[current=page]:text-primary"
             >

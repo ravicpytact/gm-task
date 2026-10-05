@@ -6,16 +6,24 @@ import { useCan, useSession } from "@/lib/auth/client";
 import { FormPage } from "@/components/layout/form-section";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { profileTabParser, USER_PERMISSIONS } from "../constants";
+import { PROFILE_TABS, profileTabParser, USER_PERMISSIONS } from "../constants";
 import { fullName, initials } from "../utils";
+import { AppearanceSection } from "./appearance-section";
 import { ProfileDetailsSection } from "./profile-details-section";
+
+const parseTab = (value: string) => PROFILE_TABS.find((t) => t === value) ?? "details";
 
 /** Screen 10 — My Profile, with Change Password (Screen 11) as its second tab. */
 export function ProfileScreen() {
   const [tab, setTab] = useQueryState("tab", profileTabParser);
   const session = useSession().data;
   const canChangePassword = useCan(USER_PERMISSIONS.updateOwnProfile);
-  const active = tab === "password" && canChangePassword ? "password" : "details";
+  const active =
+    tab === "appearance"
+      ? "appearance"
+      : tab === "password" && canChangePassword
+        ? "password"
+        : "details";
 
   return (
     <FormPage>
@@ -35,13 +43,11 @@ export function ProfileScreen() {
         </div>
       </div>
 
-      <Tabs
-        value={active}
-        onValueChange={(value) => void setTab(value === "password" ? "password" : "details")}
-      >
+      <Tabs value={active} onValueChange={(value) => void setTab(parseTab(value))}>
         <TabsList className="mb-6">
           <TabsTrigger value="details">Details</TabsTrigger>
           {canChangePassword ? <TabsTrigger value="password">Password</TabsTrigger> : null}
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
         <TabsContent value="details">
           <ProfileDetailsSection />
@@ -51,6 +57,9 @@ export function ProfileScreen() {
             <ChangePasswordSection />
           </TabsContent>
         ) : null}
+        <TabsContent value="appearance">
+          <AppearanceSection />
+        </TabsContent>
       </Tabs>
       {/* No sign-out here: the account menu in the header has it on every screen (decision 2026-10-03). */}
     </FormPage>

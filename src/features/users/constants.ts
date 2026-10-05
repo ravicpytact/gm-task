@@ -39,7 +39,7 @@ export const userListParsers = {
 };
 
 /** Which part of My Profile is open (?tab=), so a link can open the Password tab directly. */
-export const PROFILE_TABS = ["details", "password"] as const;
+export const PROFILE_TABS = ["details", "password", "appearance"] as const;
 export const profileTabParser = parseAsStringLiteral(PROFILE_TABS).withDefault("details");
 
 /** The contract's words for a 412 on any user write (docs/04-design/users/ui_data_contract.md). */

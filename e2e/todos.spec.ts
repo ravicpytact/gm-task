@@ -82,7 +82,10 @@ test.describe("my Todos", () => {
     await expect(page.getByRole("button", { name: `Daily: ${before} pending` })).toBeVisible();
 
     // Yes-No and Food answer with one tap.
-    await page.getByRole("group", { name: `Answer ${bed.name}` }).getByRole("button", { name: "Yes" }).click();
+    await page
+      .getByRole("group", { name: `Answer ${bed.name}` })
+      .getByRole("button", { name: "Yes" })
+      .click();
     await expect(visible(page, "Todo updated successfully").first()).toBeVisible();
     await expect(visible(page, bed.name)).toHaveCount(0);
     await page
@@ -92,7 +95,10 @@ test.describe("my Todos", () => {
     await expect(visible(page, lunch.name)).toHaveCount(0);
 
     // Number → Other: a whole number of 5 or more.
-    await page.getByRole("group", { name: `Answer ${pullUps.name}` }).getByRole("button", { name: "Other" }).click();
+    await page
+      .getByRole("group", { name: `Answer ${pullUps.name}` })
+      .getByRole("button", { name: "Other" })
+      .click();
     const other = page.getByLabel(`Other number for ${pullUps.name}`).filter({ visible: true });
     await other.fill("4");
     await other.press("Enter");

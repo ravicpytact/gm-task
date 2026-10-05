@@ -6,6 +6,7 @@ import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { FrequencyKpis, TodoList, todoListParsers, useTodoSummary } from "@/features/assignments";
 import { DatePickerButton } from "./date-picker-button";
+import { WelcomeTour } from "@/features/onboarding";
 
 /**
  * Screens 05 and 27 — the home screen for everyone: one date drives the counts per frequency and the
@@ -55,6 +56,7 @@ export function DashboardScreen() {
       />
 
       <TodoList date={date} />
+      <WelcomeTour />
     </div>
   );
 }

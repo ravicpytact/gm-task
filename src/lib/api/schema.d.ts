@@ -48,6 +48,26 @@ export interface paths {
     patch: operations["update_me_v1_me_patch"];
     trace?: never;
   };
+  "/v1/me/tour": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Purpose of this API is to record that I finished the welcome tour
+     * @description Any logged-in user (users.profile.read_own). Sets tour_completed_at once (finished or skipped), so the tour is not shown again on any device. Idempotent; no body.
+     */
+    put: operations["complete_tour_v1_me_tour_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/roles": {
     parameters: {
       query?: never;
@@ -1257,6 +1277,8 @@ export interface components {
       role: components["schemas"]["RoleRead"];
       /** Status */
       status: string;
+      /** Tour Completed At */
+      tour_completed_at?: string | null;
       /**
        * Created At
        * Format: date-time
@@ -2041,6 +2063,8 @@ export interface components {
       role: components["schemas"]["RoleRead"];
       /** Status */
       status: string;
+      /** Tour Completed At */
+      tour_completed_at?: string | null;
       /**
        * Created At
        * Format: date-time
@@ -2159,6 +2183,38 @@ export interface operations {
         "application/json": components["schemas"]["ProfileUpdate"];
       };
     };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StandardResponse_UserRead_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  complete_tour_v1_me_tour_put: {
+    parameters: {
+      query?: never;
+      header?: {
+        "If-Match"?: string | null;
+        "If-None-Match"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {

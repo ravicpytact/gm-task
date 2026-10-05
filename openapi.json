@@ -175,6 +175,77 @@
         }
       }
     },
+    "/v1/me/tour": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Purpose of this API is to record that I finished the welcome tour",
+        "description": "Any logged-in user (users.profile.read_own). Sets tour_completed_at once (finished or skipped), so the tour is not shown again on any device. Idempotent; no body.",
+        "operationId": "complete_tour_v1_me_tour_put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-None-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponse_UserRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/roles": {
       "get": {
         "tags": [
@@ -4880,6 +4951,18 @@
             "type": "string",
             "title": "Status"
           },
+          "tour_completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tour Completed At"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -7331,6 +7414,18 @@
           "status": {
             "type": "string",
             "title": "Status"
+          },
+          "tour_completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tour Completed At"
           },
           "created_at": {
             "type": "string",

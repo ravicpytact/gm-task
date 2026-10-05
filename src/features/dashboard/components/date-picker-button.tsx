@@ -56,6 +56,7 @@ export function DatePickerButton({
           variant="outline"
           className="rounded-full"
           aria-label={`${label}. Open the calendar`}
+          data-tour="date-pill"
           aria-haspopup="dialog"
           aria-expanded={open}
           onClick={() => openChange(!open)}

@@ -42,7 +42,10 @@ test.describe("reports and history, as Admin", () => {
     // One person: only their row.
     await page.getByRole("combobox", { name: "User" }).click();
     await page.getByPlaceholder("Search by name or email").fill(me.email);
-    await page.getByRole("option", { name: new RegExp(myName) }).first().click();
+    await page
+      .getByRole("option", { name: new RegExp(myName) })
+      .first()
+      .click();
     await expect(page).toHaveURL(new RegExp(`user=${me.id}`));
     await expect(visible(page, myName).first()).toBeVisible();
     await expect(page.getByText(/^1–1 of 1$/).filter({ visible: true })).toBeVisible();
@@ -55,7 +58,10 @@ test.describe("reports and history, as Admin", () => {
     await expect(page.getByRole("combobox", { name: "User" })).toContainText("User: All users");
     await page.getByRole("combobox", { name: "User" }).click();
     await page.getByPlaceholder("Search by name or email").fill(me.email);
-    await page.getByRole("option", { name: new RegExp(`${me.first_name} ${me.last_name}`) }).first().click();
+    await page
+      .getByRole("option", { name: new RegExp(`${me.first_name} ${me.last_name}`) })
+      .first()
+      .click();
     await expect(page).toHaveURL(new RegExp(`user=${me.id}`));
     await expect(page.getByRole("combobox", { name: "User" })).toContainText(me.first_name);
   });

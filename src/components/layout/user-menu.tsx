@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AppearanceMenu } from "./appearance-controls";
 
 export function UserMenu() {
   const { data } = useSession();
@@ -55,6 +56,7 @@ export function UserMenu() {
             </Link>
           </DropdownMenuItem>
         ) : null}
+        <AppearanceMenu />
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => void logout()}>
           <LogOut aria-hidden /> Sign out

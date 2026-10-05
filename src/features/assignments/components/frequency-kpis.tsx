@@ -24,6 +24,7 @@ export function FrequencyKpis({
   return (
     <ul
       aria-label="Pending by frequency"
+      data-tour="kpis"
       className="grid grid-cols-4 gap-2 sm:gap-3 lg:grid-cols-7"
     >
       {FREQUENCIES.map((f) => {

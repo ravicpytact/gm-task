@@ -71,7 +71,11 @@ export function TodoList({ date }: { date: string | undefined }) {
   const day = date ? formatDate(date) : null;
 
   return (
-    <section aria-labelledby="todo-list-title" className="flex flex-col gap-4">
+    <section
+      aria-labelledby="todo-list-title"
+      data-tour="todo-list"
+      className="flex flex-col gap-4"
+    >
       <div className="flex flex-col gap-1">
         <h2 id="todo-list-title" className="type-section-title">
           {day ? `Pending for ${day}` : "Pending"}
