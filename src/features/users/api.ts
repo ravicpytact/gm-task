@@ -1,5 +1,5 @@
 import { unwrap, unwrapEmpty, unwrapWithEtag, type ApiClient } from "@/lib/api";
-import type { Invite, ProfileUpdate, UserListQuery } from "./types";
+import type { Invite, ProfileUpdate, UserEdit, UserListQuery } from "./types";
 
 // User management (backend `users`) and the invitation actions started from the User List
 // (backend `auth`). The frontend slice follows the screen, not the backend package.
@@ -20,6 +20,15 @@ export const changeUserStatus = (
     api.PATCH("/v1/users/{user_id}", {
       params: { path: { user_id: userId }, header: { "If-Match": etag } },
       body: { status },
+    }),
+  );
+
+/** Edit User: same endpoint as the status change, but only names and role (only what changed). */
+export const editUser = (api: ApiClient, userId: string, etag: string, body: UserEdit) =>
+  unwrapWithEtag(
+    api.PATCH("/v1/users/{user_id}", {
+      params: { path: { user_id: userId }, header: { "If-Match": etag } },
+      body,
     }),
   );
 

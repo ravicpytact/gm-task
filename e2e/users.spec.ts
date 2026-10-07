@@ -2,8 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 import { credentials, openAccountMenu, uniqueEmail, useSavedSession } from "./helpers";
 
 // User List (Screens 12–15) and My Profile (10–11) against the real backend.
-// These tests never change existing users: the only user they create is a throwaway invitation,
-// which they delete again; the deactivate and delete dialogs are opened and cancelled.
+// These tests never change existing users: the only users they create are throwaway invitations
+// (one is edited), which they delete again; the deactivate and delete dialogs are opened and cancelled.
 
 const visible = (page: Page, text: string | RegExp) =>
   page.getByText(text).filter({ visible: true });
@@ -93,6 +93,56 @@ test.describe("users, as Admin", () => {
     await confirm.getByRole("button", { name: "Delete" }).click();
     await expect(visible(page, "Invitation deleted")).toBeVisible();
     await expect(page.getByText("No users match your search.")).toBeVisible();
+  });
+
+  test("edit a user's name and role, then the role is locked on your own row", async ({ page }) => {
+    // A throwaway invitation is the user edited (no existing user changes); deleted at the end.
+    const email = uniqueEmail("edit");
+    await page.goto("/users");
+    await page.getByRole("button", { name: "Invite user" }).click();
+    const invite = page.getByRole("dialog", { name: "Invite user" });
+    await invite.getByLabel("First name").fill("E2E");
+    await invite.getByLabel("Last name").fill("Editee");
+    await invite.getByLabel("Email").fill(email);
+    await invite.getByRole("button", { name: "Send invitation" }).click();
+    await expect(invite).toBeHidden();
+    await page.getByRole("searchbox", { name: "Search users" }).fill(email);
+
+    // Really save: last name and role (an Invited user: no role email, so the plain message).
+    await page.getByRole("button", { name: "Actions for E2E Editee" }).click();
+    await page.getByRole("menuitem", { name: "Edit" }).click();
+    const edit = page.getByRole("dialog", { name: "Edit user" });
+    await expect(edit).toContainText(email);
+    const save = edit.getByRole("button", { name: "Save changes" });
+    await expect(save).toBeDisabled(); // nothing changed yet
+    await edit.getByLabel("Last name").fill("Edited");
+    await edit.getByRole("combobox", { name: "Role" }).click();
+    await page.getByRole("option", { name: "Admin" }).click();
+    await save.click();
+    await expect(visible(page, "User updated successfully")).toBeVisible();
+    await expect(edit).toBeHidden();
+    await expect(visible(page, "E2E Edited").first()).toBeVisible();
+    await expect(visible(page, "Admin").first()).toBeVisible();
+
+    // Own row: the name can be edited, the role cannot (USR-R15). Opened and cancelled.
+    await page.getByRole("searchbox", { name: "Search users" }).fill(credentials.email);
+    await expect(visible(page, credentials.email).first()).toBeVisible();
+    await page
+      .getByRole("button", { name: /^Actions for / })
+      .first()
+      .click();
+    await page.getByRole("menuitem", { name: "Edit" }).click();
+    await expect(edit.getByRole("combobox", { name: "Role" })).toBeDisabled();
+    await expect(edit).toContainText("You can't change your own role.");
+    await edit.getByRole("button", { name: "Cancel" }).click();
+    await expect(edit).toBeHidden();
+
+    // Cleanup: delete the invitation.
+    await page.getByRole("searchbox", { name: "Search users" }).fill(email);
+    await page.getByRole("button", { name: "Actions for E2E Edited" }).click();
+    await page.getByRole("menuitem", { name: "Delete" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Delete" }).click();
+    await expect(visible(page, "Invitation deleted")).toBeVisible();
   });
 
   test("deactivate and delete explain the impact, guard the button, and can be cancelled", async ({

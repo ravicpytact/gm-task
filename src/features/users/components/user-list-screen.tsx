@@ -22,12 +22,14 @@ import type { RoleCode, User } from "../types";
 import { fullName, toUserListQuery } from "../utils";
 import { ChangeStatusDialog } from "./change-status-dialog";
 import { DeleteUserDialog } from "./delete-user-dialog";
+import { EditUserDialog } from "./edit-user-dialog";
 import { InviteUserDialog } from "./invite-user-dialog";
 import { UserCard } from "./user-card";
 import { UserRowActions, type UserAction } from "./user-row-actions";
 import { UserStatusBadge } from "./user-status-badge";
 
 type OpenDialog =
+  | { kind: "edit"; user: User }
   | { kind: "status"; user: User; target: "ACTIVE" | "INACTIVE" }
   | { kind: "delete"; user: User }
   | null;
@@ -52,6 +54,9 @@ export function UserListScreen() {
   const onAction = useCallback(
     (action: UserAction, user: User) => {
       switch (action) {
+        case "edit":
+          setDialog({ kind: "edit", user });
+          break;
         case "resend":
           resendInvitation(user.id, {
             onSuccess: () => toast.success(`Invitation sent to ${user.email}`),
@@ -186,6 +191,13 @@ export function UserListScreen() {
       )}
 
       <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+      {dialog?.kind === "edit" ? (
+        <EditUserDialog
+          user={dialog.user}
+          isSelf={dialog.user.id === selfId}
+          onClose={() => setDialog(null)}
+        />
+      ) : null}
       {dialog?.kind === "status" ? (
         <ChangeStatusDialog
           user={dialog.user}

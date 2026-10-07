@@ -130,10 +130,14 @@ export interface paths {
     options?: never;
     head?: never;
     /**
-     * Purpose of this API is to activate or deactivate a user
-     * @description Admin only (users.user.update_status). Requires If-Match. INACTIVE logs the user out on their next request and stops new Todos; ACTIVE (from INACTIVE) resumes Todos from today. An Admin cannot change their own status; an INVITED user becomes ACTIVE only by accepting the invitation.
+     * Purpose of this API is to edit a user's name and role, or activate / deactivate them
+     * @description Admin only. Requires If-Match. Send EITHER Edit User fields OR status, never both.
+     *
+     *     **Edit User** (users.user.update): first_name, last_name, role_id; only what changed; all or nothing. Active, Inactive and Invited users. An Admin can edit their own name but not their own role; the last Active Admin cannot be downgraded. A role change keeps the user logged in (new permissions apply on their next request), keeps their tasks, and emails them if they are Active.
+     *
+     *     **Status** (users.user.update_status): status alone. INACTIVE logs the user out on their next request and stops new Todos; ACTIVE (from INACTIVE) resumes Todos from today. An Admin cannot change their own status; an INVITED user becomes ACTIVE only by accepting the invitation.
      */
-    patch: operations["change_user_status_v1_users__user_id__patch"];
+    patch: operations["update_user_v1_users__user_id__patch"];
     trace?: never;
   };
   "/v1/auth/login": {
@@ -2081,15 +2085,20 @@ export interface components {
       updated_by: string | null;
     };
     /**
-     * UserStatusUpdate
-     * @description PATCH /v1/users/{user_id} — activate or deactivate.
+     * UserUpdate
+     * @description PATCH /v1/users/{user_id}: Edit User (first_name, last_name, role_id; USR-R13) OR `status` on its
+     *     own (USR-R3). Never both: the frontend has an Edit form and separate Activate / Deactivate actions,
+     *     and each use needs a different permission.
      */
-    UserStatusUpdate: {
-      /**
-       * Status
-       * @enum {string}
-       */
-      status: "ACTIVE" | "INACTIVE";
+    UserUpdate: {
+      /** First Name */
+      first_name?: string | null;
+      /** Last Name */
+      last_name?: string | null;
+      /** Role Id */
+      role_id?: string | null;
+      /** Status */
+      status?: ("ACTIVE" | "INACTIVE") | null;
     };
     /** ValidationError */
     ValidationError: {
@@ -2374,7 +2383,7 @@ export interface operations {
       };
     };
   };
-  change_user_status_v1_users__user_id__patch: {
+  update_user_v1_users__user_id__patch: {
     parameters: {
       query?: never;
       header?: {
@@ -2388,7 +2397,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UserStatusUpdate"];
+        "application/json": components["schemas"]["UserUpdate"];
       };
     };
     responses: {

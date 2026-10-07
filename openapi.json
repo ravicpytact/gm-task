@@ -582,9 +582,9 @@
         "tags": [
           "Users"
         ],
-        "summary": "Purpose of this API is to activate or deactivate a user",
-        "description": "Admin only (users.user.update_status). Requires If-Match. INACTIVE logs the user out on their next request and stops new Todos; ACTIVE (from INACTIVE) resumes Todos from today. An Admin cannot change their own status; an INVITED user becomes ACTIVE only by accepting the invitation.",
-        "operationId": "change_user_status_v1_users__user_id__patch",
+        "summary": "Purpose of this API is to edit a user's name and role, or activate / deactivate them",
+        "description": "Admin only. Requires If-Match. Send EITHER Edit User fields OR status, never both.\n\n**Edit User** (users.user.update): first_name, last_name, role_id; only what changed; all or nothing. Active, Inactive and Invited users. An Admin can edit their own name but not their own role; the last Active Admin cannot be downgraded. A role change keeps the user logged in (new permissions apply on their next request), keeps their tasks, and emails them if they are Active.\n\n**Status** (users.user.update_status): status alone. INACTIVE logs the user out on their next request and stops new Todos; ACTIVE (from INACTIVE) resumes Todos from today. An Admin cannot change their own status; an INVITED user becomes ACTIVE only by accepting the invitation.",
+        "operationId": "update_user_v1_users__user_id__patch",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -639,7 +639,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserStatusUpdate"
+                "$ref": "#/components/schemas/UserUpdate"
               }
             }
           }
@@ -7477,24 +7477,62 @@
         ],
         "title": "UserRead"
       },
-      "UserStatusUpdate": {
+      "UserUpdate": {
         "properties": {
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "role_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Id"
+          },
           "status": {
-            "type": "string",
-            "enum": [
-              "ACTIVE",
-              "INACTIVE"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "INACTIVE"
+                ]
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Status"
           }
         },
         "additionalProperties": false,
         "type": "object",
-        "required": [
-          "status"
-        ],
-        "title": "UserStatusUpdate",
-        "description": "PATCH /v1/users/{user_id} — activate or deactivate."
+        "title": "UserUpdate",
+        "description": "PATCH /v1/users/{user_id}: Edit User (first_name, last_name, role_id; USR-R13) OR `status` on its\nown (USR-R3). Never both: the frontend has an Edit form and separate Activate / Deactivate actions,\nand each use needs a different permission."
       },
       "ValidationError": {
         "properties": {

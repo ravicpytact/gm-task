@@ -12,6 +12,7 @@ import { invalidateAllExceptSession } from "@/lib/query/invalidate";
 import {
   changeUserStatus,
   deleteUser,
+  editUser,
   getDeletePreview,
   getMyProfile,
   getUser,
@@ -22,7 +23,7 @@ import {
   sendPasswordLink,
   updateMyProfile,
 } from "./api";
-import type { Invite, ProfileUpdate, UserListQuery } from "./types";
+import type { Invite, ProfileUpdate, UserEdit, UserListQuery } from "./types";
 
 export const userKeys = {
   all: ["users"] as const,
@@ -103,6 +104,22 @@ export function useChangeUserStatus() {
     onSuccess: (result, v) => {
       queryClient.setQueryData(userKeys.detail(v.id), result);
       return queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+    },
+    onError: (error, v) => refetchOnConflict(queryClient, v.id)(error),
+  });
+}
+
+export function useEditUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: string; etag: string; body: UserEdit; isSelf: boolean }) =>
+      editUser(browserApi, v.id, v.etag, v.body),
+    onSuccess: (result, v) => {
+      queryClient.setQueryData(userKeys.detail(v.id), result);
+      // Your own name shows in the header, which comes from the session.
+      if (v.isSelf) void queryClient.invalidateQueries({ queryKey: sessionKeys.all });
+      // Names show in assignments, history and reports too (FE-DATA-003).
+      return invalidateAllExceptSession(queryClient);
     },
     onError: (error, v) => refetchOnConflict(queryClient, v.id)(error),
   });

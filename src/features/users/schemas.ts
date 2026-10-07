@@ -13,6 +13,13 @@ export const inviteSchema = z.object({
 });
 export type InviteValues = z.infer<typeof inviteSchema>;
 
+export const editUserSchema = z.object({
+  first_name: name("first name"),
+  last_name: name("last name"),
+  role_id: z.string().min(1, "Choose a role"),
+});
+export type EditUserValues = z.infer<typeof editUserSchema>;
+
 export const profileSchema = z.object({
   first_name: name("first name"),
   last_name: name("last name"),

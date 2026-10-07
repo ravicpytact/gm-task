@@ -5,6 +5,7 @@ import type { RoleCode, UserSortField, UserStatus } from "./types";
 export const USER_PERMISSIONS = {
   readAll: "users.user.read_all",
   invite: "users.user.invite",
+  update: "users.user.update",
   updateStatus: "users.user.update_status",
   delete: "users.user.delete",
   sendPasswordLink: "users.user.send_password_link",

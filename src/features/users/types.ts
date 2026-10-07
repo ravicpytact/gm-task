@@ -5,6 +5,8 @@ export type Role = Schemas["RoleRead"];
 export type DeletePreview = Schemas["UserDeletePreviewRead"];
 export type Invite = Schemas["InviteRequest"];
 export type ProfileUpdate = Schemas["ProfileUpdate"];
+/** Edit User: names and role only. Status goes alone through changeUserStatus (never both). */
+export type UserEdit = Pick<Schemas["UserUpdate"], "first_name" | "last_name" | "role_id">;
 
 export type UserListQuery = NonNullable<
   Operations["list_users_v1_users_get"]["parameters"]["query"]

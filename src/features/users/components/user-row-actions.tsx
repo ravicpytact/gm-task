@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound, MoreHorizontal, Send, Trash2, UserCheck, UserX } from "lucide-react";
+import { KeyRound, MoreHorizontal, Pencil, Send, Trash2, UserCheck, UserX } from "lucide-react";
 import { useCan } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ import { USER_PERMISSIONS } from "../constants";
 import type { User } from "../types";
 import { fullName } from "../utils";
 
-export type UserAction = "resend" | "password-link" | "deactivate" | "activate" | "delete";
+export type UserAction = "edit" | "resend" | "password-link" | "deactivate" | "activate" | "delete";
 
 /** The row menu of the User List (docs/04-design/users/ui_data_contract.md §1, Row actions). */
 export function UserRowActions({
@@ -27,12 +27,15 @@ export function UserRowActions({
   isSelf: boolean;
   onAction: (action: UserAction, user: User) => void;
 }) {
+  const canEdit = useCan(USER_PERMISSIONS.update);
   const canInvite = useCan(USER_PERMISSIONS.invite);
   const canSendLink = useCan(USER_PERMISSIONS.sendPasswordLink);
   const canUpdateStatus = useCan(USER_PERMISSIONS.updateStatus);
   const canDelete = useCan(USER_PERMISSIONS.delete);
 
   const items = [
+    // Every row, own row included (name only there; the dialog locks the role, USR-R15).
+    canEdit ? { action: "edit" as const, label: "Edit", icon: Pencil } : null,
     user.status === "INVITED" && canInvite
       ? { action: "resend" as const, label: "Re-send invitation", icon: Send }
       : null,
