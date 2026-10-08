@@ -97,6 +97,20 @@ test.describe("My tasks, as a User", () => {
     }
   });
 
+  test("on a phone, a User's bar has its five items and no More", async ({ page }, info) => {
+    test.skip(info.project.name !== "phone", "The bottom bar is for phones");
+    await page.goto("/todos");
+    const bar = page.getByRole("navigation", { name: "Main" }).filter({ visible: true });
+    await expect(bar.getByRole("link")).toHaveText([
+      "Todos",
+      "My tasks",
+      "History",
+      "Report",
+      "Profile",
+    ]);
+    await expect(bar.getByRole("button", { name: "More" })).toHaveCount(0);
+  });
+
   test("an assignment that is not mine says so, with the way back", async ({ page }) => {
     await page.goto("/my-tasks/00000000-0000-0000-0000-000000000000");
     await expect(page.getByText("This task isn't assigned to you.")).toBeVisible();

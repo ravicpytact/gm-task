@@ -1,10 +1,19 @@
 "use client";
 
+import { Ellipsis } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { NAVIGATION, type NavItem } from "@/config/constants";
 import { useSession } from "@/lib/auth/client";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** Navigation items this person may use, by permission code (FE-AUTH-005). */
@@ -59,9 +68,22 @@ export function SidebarNav({
   );
 }
 
+const BOTTOM_ITEM =
+  "flex min-h-14 w-full flex-col items-center justify-center gap-1 text-xs text-muted-foreground aria-[current=page]:font-medium aria-[current=page]:text-primary data-[active=true]:font-medium data-[active=true]:text-primary";
+
+/**
+ * The phone's bottom bar: the items marked `mobile`, and a "More" item opening a sheet with the
+ * rest this person may use (an Admin's Users, Tasks and Task Assignments). No rest, no More, so a
+ * User's bar keeps its five items.
+ */
 export function BottomNav() {
   const pathname = usePathname();
   const visible = useVisibleItems((item) => item.mobile === true);
+  const more = useVisibleItems((item) => item.mobile !== true);
+  const [moreOpen, setMoreOpen] = useState(false);
+  // On one of the More pages, More is the highlighted item.
+  const inMore = more.some((item) => isActive(pathname, item.href));
+
   return (
     <nav
       aria-label="Main"
@@ -74,13 +96,47 @@ export function BottomNav() {
               href={href}
               data-nav={href}
               aria-current={isActive(pathname, href) ? "page" : undefined}
-              className="flex min-h-14 flex-col items-center justify-center gap-1 text-xs text-muted-foreground aria-[current=page]:font-medium aria-[current=page]:text-primary"
+              className={BOTTOM_ITEM}
             >
               <Icon className="size-5" aria-hidden />
               {shortLabel ?? label}
             </Link>
           </li>
         ))}
+        {more.length > 0 ? (
+          <li className="flex-1">
+            <Drawer open={moreOpen} onOpenChange={setMoreOpen}>
+              <DrawerTrigger asChild>
+                <button type="button" data-active={inMore} className={BOTTOM_ITEM}>
+                  <Ellipsis className="size-5" aria-hidden />
+                  More
+                </button>
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>More</DrawerTitle>
+                  <DrawerDescription className="sr-only">More pages of the app</DrawerDescription>
+                </DrawerHeader>
+                <ul className="flex flex-col gap-1 px-4 pb-6">
+                  {more.map(({ href, label, icon: Icon }) => (
+                    <li key={href}>
+                      <Link
+                        href={href}
+                        data-nav={href}
+                        aria-current={isActive(pathname, href) ? "page" : undefined}
+                        onClick={() => setMoreOpen(false)}
+                        className="flex min-h-12 items-center gap-3 rounded-lg px-4 text-sm font-medium transition-colors hover:bg-muted aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground"
+                      >
+                        <Icon className="size-5 shrink-0" aria-hidden />
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </DrawerContent>
+            </Drawer>
+          </li>
+        ) : null}
       </ul>
     </nav>
   );

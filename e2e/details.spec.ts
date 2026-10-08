@@ -38,6 +38,24 @@ test.describe("Todos (formerly Dashboard)", () => {
     );
   });
 
+  test("on a phone, an Admin reaches Users and Tasks through More", async ({ page }, info) => {
+    test.skip(info.project.name !== "phone", "The bottom bar is for phones");
+    await page.goto("/todos");
+    const bar = page.getByRole("navigation", { name: "Main" }).filter({ visible: true });
+    await bar.getByRole("button", { name: "More" }).click();
+    const sheet = page.getByRole("dialog", { name: "More" });
+    await expect(sheet.getByRole("link", { name: "Task Assignments" })).toBeVisible();
+    await sheet.getByRole("link", { name: "Users" }).click();
+    await expect(page).toHaveURL(/\/users$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Users" })).toBeVisible();
+    await expect(sheet).toBeHidden();
+    // On a More page, More is the highlighted item; Tasks is one more tap away.
+    await expect(bar.getByRole("button", { name: "More" })).toHaveAttribute("data-active", "true");
+    await bar.getByRole("button", { name: "More" }).click();
+    await sheet.getByRole("link", { name: "Tasks" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Tasks" })).toBeVisible();
+  });
+
   test("an Admin has no My tasks: not in the menu, and the page is forbidden", async ({ page }) => {
     await page.goto("/todos");
     await expect(page.getByRole("link", { name: "Todos" }).first()).toBeVisible();
