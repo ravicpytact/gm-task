@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Assignment } from "../types";
@@ -9,26 +10,43 @@ import { AssignmentStatusBadge, CopiedTag, InactiveTag } from "./assignment-stat
 export function AssignmentCard({
   assignment: a,
   onAction,
+  without,
+  extra,
 }: {
   assignment: Assignment;
   onAction: (action: AssignmentAction, assignment: Assignment) => void;
+  /** A detail page about this user or task leaves it out: it is the page's subject. */
+  without?: "user" | "task";
+  /** More lines under the dates (the detail pages' Next due, Assigned on / by). */
+  extra?: ReactNode;
 }) {
   return (
     <Card size="sm">
       <CardContent className="flex items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="flex flex-wrap items-center gap-2 font-medium">
-            <span className="truncate">{a.task.name}</span>
-            <InactiveTag status={a.task.status} />
-          </p>
-          <p className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="truncate">{personName(a.user)}</span>
-            <InactiveTag status={a.user.status} />
-          </p>
+          {without === "task" ? null : (
+            <p className="flex flex-wrap items-center gap-2 font-medium">
+              <span className="truncate">{a.task.name}</span>
+              <InactiveTag status={a.task.status} />
+            </p>
+          )}
+          {without === "user" ? null : (
+            <p
+              className={
+                without === "task"
+                  ? "flex flex-wrap items-center gap-2 font-medium"
+                  : "flex flex-wrap items-center gap-2 text-sm"
+              }
+            >
+              <span className="truncate">{personName(a.user)}</span>
+              <InactiveTag status={a.user.status} />
+            </p>
+          )}
           <p className="type-caption">
             {frequencyText(a.frequency, a.weekdays)} · {formatDate(a.start_date)} –{" "}
             {a.end_date ? formatDate(a.end_date) : "no end date"}
           </p>
+          {extra}
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <AssignmentStatusBadge assignment={a} />
             <CopiedTag copied={a.is_copied} />

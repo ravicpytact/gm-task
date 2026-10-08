@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ApiError, applyFieldErrors, toUserMessage } from "./errors";
+import { ApiError, applyFieldErrors, isNotFound, toUserMessage } from "./errors";
 
 const response = (status: number, requestId = "req-1") =>
   new Response(null, { status, headers: { "X-Request-ID": requestId } });
@@ -88,5 +88,25 @@ describe("applyFieldErrors", () => {
 
   it("reports false when there are no field details", () => {
     expect(applyFieldErrors(backendError(409, "CONFLICT", "Conflict"), vi.fn())).toBe(false);
+  });
+});
+
+// Detail pages: "this user doesn't exist" instead of a generic error.
+describe("isNotFound", () => {
+  it("is true for a 404", () => {
+    expect(isNotFound(backendError(404, "USER_NOT_FOUND", "User not found"), "user_id")).toBe(true);
+  });
+
+  it("is true for an id in the URL that is not an id", () => {
+    const error = backendError(400, "VALIDATION_FAILED", "The request is not valid.", [
+      { field: "user_id", issue: "Input should be a valid UUID" },
+    ]);
+    expect(isNotFound(error, "user_id")).toBe(true);
+    expect(isNotFound(error, "task_id")).toBe(false);
+  });
+
+  it("is false for other failures", () => {
+    expect(isNotFound(backendError(500, "INTERNAL", "Boom"), "user_id")).toBe(false);
+    expect(isNotFound(new TypeError("x"), "user_id")).toBe(false);
   });
 });

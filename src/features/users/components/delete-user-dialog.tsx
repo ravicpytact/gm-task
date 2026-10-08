@@ -14,7 +14,16 @@ import { fullName } from "../utils";
  * Screen 15 — Delete User. An invited user has no data: a simple confirmation (USR-R12).
  * Anyone else: the impact first (USR-R9), then the Admin types the email to enable Delete.
  */
-export function DeleteUserDialog({ user, onClose }: { user: User; onClose: () => void }) {
+export function DeleteUserDialog({
+  user,
+  onClose,
+  onDeleted,
+}: {
+  user: User;
+  onClose: () => void;
+  /** After a successful delete, before the dialog closes (User Detail leaves the page). */
+  onDeleted?: (() => void) | undefined;
+}) {
   const current = useUser(user.id);
   const remove = useDeleteUser();
   const name = fullName(user);
@@ -24,6 +33,7 @@ export function DeleteUserDialog({ user, onClose }: { user: User; onClose: () =>
     if (!current.data) return;
     await remove.mutateAsync({ id: user.id, etag: current.data.etag });
     toast.success(invited ? "Invitation deleted" : `${name} deleted`);
+    onDeleted?.();
   };
 
   if (invited) {

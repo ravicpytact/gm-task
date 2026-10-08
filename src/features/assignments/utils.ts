@@ -1,6 +1,7 @@
 import type { inferParserType } from "nuqs/server";
 import {
   addDays,
+  formatDate,
   formatWeekdayDate,
   monthOf,
   toApiDate,
@@ -11,12 +12,16 @@ import {
   ASSIGNMENTS_PAGE_SIZE,
   FREQUENCY_LABELS,
   HISTORY_PAGE_SIZE,
+  MY_TASKS_PAGE_SIZE,
   OTHER_CHOICE,
   TODOS_PAGE_SIZE,
   WEEKDAY_LABELS,
   WEEKDAYS,
   assignmentListParsers,
+  detailParsers,
   historyParsers,
+  myTaskHistoryParsers,
+  myTasksParsers,
   todoListParsers,
 } from "./constants";
 import type {
@@ -26,6 +31,7 @@ import type {
   AssignmentListQuery,
   CopyResult,
   Frequency,
+  MyAssignmentListQuery,
   MyHistoryQuery,
   TodoAnswer,
   TodoListQuery,
@@ -206,3 +212,96 @@ export function draftAnswer(
     ? { state: "ready", body: { response_value: parsed.data, is_other: !type.accepts_time } }
     : { state: "invalid", message: parsed.error.issues[0]?.message ?? "Check this answer." };
 }
+
+// --- Detail pages and My tasks ----------------------------------------------------------------
+
+/** Whose detail page: User Detail lists one person's assignments, Task Detail one task's. */
+export type DetailScope = { kind: "user"; userId: string } | { kind: "task"; taskId: string };
+
+export type DetailParams = inferParserType<typeof detailParsers>;
+/** A change to the URL: `null` clears a value (back to its default). */
+export type DetailChanges = { [K in keyof DetailParams]?: DetailParams[K] | null };
+
+/** The Assignments tab: the Assignment List query, fixed to this person or task. */
+export function toDetailAssignmentQuery(
+  params: DetailParams,
+  scope: DetailScope,
+): AssignmentListQuery {
+  return {
+    page: params.page,
+    page_size: ASSIGNMENTS_PAGE_SIZE,
+    status: params.status,
+    frequency: params.frequency ?? undefined,
+    user_id: scope.kind === "user" ? scope.userId : undefined,
+    task_id: scope.kind === "task" ? scope.taskId : undefined,
+    // By the other side: a person's tasks by name, a task's people by name.
+    sort_by: scope.kind === "user" ? "task_name" : "user_name",
+    sort_order: "asc",
+  };
+}
+
+/** The History tab: History (all users) fixed to this person or task; without a range, this week. */
+export function toDetailHistoryQuery(
+  params: DetailParams,
+  scope: DetailScope,
+  today: string,
+): AllHistoryQuery {
+  const week = weekRange(today);
+  return {
+    date_from: params.from ?? week.from,
+    date_to: params.to ?? week.to,
+    frequency: params.frequency ?? undefined,
+    user_id: scope.kind === "user" ? scope.userId : (params.user ?? undefined),
+    task_id: scope.kind === "task" ? scope.taskId : (params.task ?? undefined),
+    page: params.page,
+    page_size: HISTORY_PAGE_SIZE,
+  };
+}
+
+export type MyTasksParams = inferParserType<typeof myTasksParsers>;
+
+export function toMyAssignmentListQuery(params: MyTasksParams): MyAssignmentListQuery {
+  return { status: params.status, page: params.page, page_size: MY_TASKS_PAGE_SIZE };
+}
+
+export type MyTaskHistoryParams = inferParserType<typeof myTaskHistoryParsers>;
+
+/** My Task Detail's history: every assignment I have had of this task (contract §12). */
+export function toMyTaskHistoryQuery(
+  params: MyTaskHistoryParams,
+  taskId: string,
+  today: string,
+): MyHistoryQuery {
+  const week = weekRange(today);
+  return {
+    date_from: params.from ?? week.from,
+    date_to: params.to ?? week.to,
+    task_id: taskId,
+    page: params.page,
+    page_size: HISTORY_PAGE_SIZE,
+  };
+}
+
+/** The next due day: "Today" when it is today; `null` when there is none (ended). */
+export function nextDueLabel(dates: readonly string[], today: string): string | null {
+  const next = dates[0];
+  if (!next) return null;
+  return next === today ? "Today" : formatDate(next);
+}
+
+/** "Active", or "Ended on 30 Sep 2026 (de-assigned)" (contract §12). */
+export function endedText(
+  assignment: Pick<Assignment, "status" | "ended_reason" | "ended_on">,
+): string {
+  if (assignment.status === "ACTIVE" || !assignment.ended_on) return statusText(assignment);
+  const reason =
+    assignment.ended_reason === "DEASSIGNED"
+      ? " (de-assigned)"
+      : assignment.ended_reason === "END_DATE_PASSED"
+        ? " (end date passed)"
+        : "";
+  return `Ended on ${formatDate(assignment.ended_on)}${reason}`;
+}
+
+/** My Task Detail (contract §12). */
+export const myTaskPath = (assignmentId: string) => `/my-tasks/${assignmentId}`;

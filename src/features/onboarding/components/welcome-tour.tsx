@@ -28,7 +28,7 @@ function visible(selector: string): Element | undefined {
 
 /**
  * The welcome for someone new (shown once per account): a card, then an optional five-step tour of
- * the Dashboard. Finishing or skipping records it, so it never shows again on any device.
+ * the Todos screen. Finishing or skipping records it, so it never shows again on any device.
  */
 export function WelcomeTour() {
   const user = useSession().data?.user;
@@ -84,8 +84,8 @@ export function WelcomeTour() {
             Welcome to {APP_NAME}, {user.first_name}
           </DialogTitle>
           <DialogDescription>
-            Your daily tasks, called Todos, are waiting on the Dashboard. Answer them each day, and
-            see your progress in History and Report.
+            Your daily tasks, called Todos, are waiting on the Todos screen. Answer them each day,
+            and see your progress in History and Report.
           </DialogDescription>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">

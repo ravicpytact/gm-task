@@ -6,6 +6,7 @@ import type {
   AssignmentUpdate,
   CopyRequest,
   DueDatesQuery,
+  MyAssignmentListQuery,
   MyHistoryQuery,
   TodoAnswer,
   TodoListQuery,
@@ -77,3 +78,17 @@ export const listMyTasks = (api: ApiClient) => unwrap(api.GET("/v1/me/tasks"));
 /** The calendar's year and month views: pending Todos per year, and per month of `year`. */
 export const getPendingCounts = (api: ApiClient, year: number | null) =>
   unwrap(api.GET("/v1/me/todos/pending-counts", { params: { query: { year } } }));
+
+// --- My tasks (Users) -------------------------------------------------------------------------
+
+/** My assignments: Active first, then by task name, then newest start (the server's order). */
+export const listMyAssignments = (api: ApiClient, query: MyAssignmentListQuery) =>
+  unwrap(api.GET("/v1/me/assignments", { params: { query } }));
+
+/** One of my assignments; someone else's answers 404, like an unknown one. */
+export const getMyAssignment = (api: ApiClient, assignmentId: string) =>
+  unwrap(
+    api.GET("/v1/me/assignments/{assignment_id}", {
+      params: { path: { assignment_id: assignmentId } },
+    }),
+  );

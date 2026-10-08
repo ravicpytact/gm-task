@@ -13,7 +13,7 @@ import { WelcomeTour } from "@/features/onboarding";
  * pending Todos below. The date pill opens the pending-dates calendar (Screen 07) as a popup, so the
  * list keeps the full width. "Today" is the server's (contract §1).
  */
-export function DashboardScreen() {
+export function TodosScreen() {
   const [params, setParams] = useQueryStates(todoListParsers);
   const summary = useTodoSummary(params.date);
   const firstName = useSession().data?.user.first_name;
@@ -26,7 +26,7 @@ export function DashboardScreen() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="type-page-title">{firstName ? `Hi, ${firstName}` : "Dashboard"}</h1>
+        <h1 className="type-page-title">{firstName ? `Hi, ${firstName}` : "Todos"}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <DatePickerButton
             label={dateText}

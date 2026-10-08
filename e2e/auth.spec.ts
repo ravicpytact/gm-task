@@ -14,8 +14,8 @@ test.describe("signed out", () => {
   test("a protected page sends you to sign in and remembers where you were going", async ({
     page,
   }) => {
-    await page.goto("/dashboard");
-    await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
+    await page.goto("/todos");
+    await expect(page).toHaveURL(/\/login\?next=%2Ftodos/);
     await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   });
 
@@ -63,9 +63,7 @@ test.describe("signing in and out", () => {
   // Its own real sign-in: signing out revokes the session, so it must not use the shared one.
   test("sign in, see your name, sign out, and Back does not show the app", async ({ page }) => {
     await signIn(page);
-    await expect(
-      page.getByRole("heading", { level: 1, name: /^(Hi, .+|Dashboard)$/ }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /^(Hi, .+|Todos)$/ })).toBeVisible();
     await openAccountMenu(page);
     await expect(page.getByRole("menu")).toContainText(credentials.email);
     await page.getByRole("menuitem", { name: "Sign out" }).click();
@@ -73,11 +71,9 @@ test.describe("signing in and out", () => {
 
     // Sign-in and sign-out replace their history entries, so Back never lands on the app.
     await page.goBack();
-    await expect(page.getByRole("heading", { level: 1, name: /^(Hi, .+|Dashboard)$/ })).toHaveCount(
-      0,
-    );
+    await expect(page.getByRole("heading", { level: 1, name: /^(Hi, .+|Todos)$/ })).toHaveCount(0);
     // And the session is really over: the app asks to sign in again.
-    await page.goto("/dashboard");
+    await page.goto("/todos");
     await expect(page).toHaveURL(/\/login/);
   });
 });
@@ -86,7 +82,7 @@ test.describe("signed in", () => {
   useSavedSession();
 
   test("change password: a wrong current password is reported on that field", async ({ page }) => {
-    await page.goto("/dashboard");
+    await page.goto("/todos");
     await openAccountMenu(page);
     await page.getByRole("menuitem", { name: "Change password" }).click();
     await expect(page).toHaveURL(/\/profile\?tab=password/);

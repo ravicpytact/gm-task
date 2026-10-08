@@ -28,3 +28,6 @@ export function answerPreview(info: TaskTypeInfo): string {
   if (info.has_other) options.push(`Other (${info.other_min ?? 5} or more)`);
   return options.join(", ");
 }
+
+/** Task Detail (contract §6). */
+export const taskPath = (taskId: string) => `/tasks/${taskId}`;

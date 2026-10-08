@@ -1,7 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { useSavedSession } from "./helpers";
 
-// Dashboard, answering, the calendar and My History (Screens 05–08, 27) against the real backend.
+// Todos, answering, the calendar and My History (Screens 05–08, 27) against the real backend.
 // Answers can't be undone, so each test answers only Todos of its own throwaway tasks
 // ("E2E todo …"), assigned to the signed-in Admin; deleting the tasks afterwards removes their
 // assignments, Todos and answers too.
@@ -75,7 +75,7 @@ test.describe("my Todos", () => {
     const before = await dailyPending(request);
 
     // Only this run's Todos, through the search in the URL.
-    await page.goto(`/dashboard?search=${encodeURIComponent(run)}`);
+    await page.goto(`/todos?search=${encodeURIComponent(run)}`);
     await expect(page.getByRole("heading", { level: 1, name: /^Hi, / })).toBeVisible();
     await expect(page.getByText(/^Pending for \d\d \w{3} \d{4}$/)).toBeVisible();
     await expect(
@@ -139,7 +139,7 @@ test.describe("my Todos", () => {
   });
 
   test("the calendar popup opens a day's Todos", async ({ page }) => {
-    await page.goto("/dashboard");
+    await page.goto("/todos");
     const pill = page.getByRole("button", { name: /^Today · .+ Open the calendar$/ });
     await pill.click();
     const calendar = page.getByRole("region", { name: "Pending-dates calendar" });

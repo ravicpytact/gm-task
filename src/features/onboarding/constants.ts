@@ -1,4 +1,4 @@
-// The welcome tour's steps, on the Dashboard (docs/08-frontend/README.md §4b). Each points at a part
+// The welcome tour's steps, on the Todos screen (docs/08-frontend/README.md §4b). Each points at a part
 // of the screen by a stable attribute; a step whose target is not on screen is left out.
 
 export type TourStep = {
@@ -26,6 +26,13 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Pick another day",
     description:
       "Open the calendar to see any day. Missed days are red, so you can catch up on them.",
+  },
+  {
+    // Users only: Admins have no My tasks, so the step is left out for them.
+    target: '[data-nav="/my-tasks"]',
+    title: "Your tasks",
+    description:
+      "My tasks lists every task assigned to you: how often it repeats and when it is due next.",
   },
   {
     target: '[data-nav="/history"]',

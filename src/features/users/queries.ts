@@ -72,6 +72,12 @@ export const useUser = (id: string | null) =>
   useQuery({ ...userQueries.detail(id ?? ""), enabled: id !== null });
 export const useDeletePreview = (id: string | null) =>
   useQuery({ ...userQueries.deletePreview(id ?? ""), enabled: id !== null });
+/**
+ * A person shown by name ("created by", "assigned by"): the same cached read as `useUser`, but a
+ * name does not need the latest version, so it is not read again on every screen.
+ */
+export const usePerson = (id: string | null) =>
+  useQuery({ ...userQueries.detail(id ?? ""), enabled: id !== null, staleTime: 5 * 60_000 });
 
 /** A 412: someone changed the user meanwhile. Fetch the new version so a retry can succeed. */
 function refetchOnConflict(queryClient: ReturnType<typeof useQueryClient>, id: string) {

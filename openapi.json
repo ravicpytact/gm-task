@@ -2587,6 +2587,196 @@
         }
       }
     },
+    "/v1/me/assignments": {
+      "get": {
+        "tags": [
+          "My Tasks"
+        ],
+        "summary": "Purpose of this API is to list my tasks (my own assignments)",
+        "description": "Users only (assignments.assignment.read_own). Read-only. Status ALL by default (ACTIVE, ENDED); Active first, then task name. Each item has the task (with description), the schedule, the next 3 due dates, and the names of who assigned and last changed it.",
+        "operationId": "my_assignments_v1_me_assignments_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "ACTIVE",
+                "ENDED",
+                "ALL"
+              ],
+              "type": "string",
+              "default": "ALL",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-None-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponse_PaginatedResponse_MyAssignmentRead__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/assignments/{assignment_id}": {
+      "get": {
+        "tags": [
+          "My Tasks"
+        ],
+        "summary": "Purpose of this API is to get one of my tasks",
+        "description": "Users only (assignments.assignment.read_own). 404 if it does not exist or is someone else's. For its history call GET /v1/me/history?task_id=…",
+        "operationId": "my_assignment_v1_me_assignments__assignment_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "assignment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assignment Id"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-None-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponse_MyAssignmentRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/me/todos": {
       "get": {
         "tags": [
@@ -5123,6 +5313,171 @@
         ],
         "title": "MonthPending"
       },
+      "MyAssignmentRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "task": {
+            "$ref": "#/components/schemas/MyAssignmentTaskRead"
+          },
+          "frequency": {
+            "type": "string",
+            "title": "Frequency"
+          },
+          "weekdays": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Weekdays"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "ended_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended Reason"
+          },
+          "ended_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended On"
+          },
+          "next_due_dates": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Next Due Dates"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "assigned_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_changed_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "task",
+          "frequency",
+          "weekdays",
+          "start_date",
+          "end_date",
+          "status",
+          "ended_reason",
+          "ended_on",
+          "next_due_dates",
+          "created_at",
+          "updated_at",
+          "assigned_by",
+          "last_changed_by"
+        ],
+        "title": "MyAssignmentRead",
+        "description": "GET /v1/me/assignments: My tasks (Users). Read-only, so no version. Names instead of ids for\nwho assigned / changed it, because a User cannot read other users."
+      },
+      "MyAssignmentTaskRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "type",
+          "description",
+          "status"
+        ],
+        "title": "MyAssignmentTaskRead"
+      },
       "MyPermissionsRead": {
         "properties": {
           "role": {
@@ -5320,6 +5675,64 @@
           "total_pages"
         ],
         "title": "PaginatedResponse[HistoryItemRead]"
+      },
+      "PaginatedResponse_MyAssignmentRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MyAssignmentRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages"
+          },
+          "next_page": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Page"
+          },
+          "prev_page": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prev Page"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "total_pages"
+        ],
+        "title": "PaginatedResponse[MyAssignmentRead]"
       },
       "PaginatedResponse_ReportUserRow_": {
         "properties": {
@@ -5602,6 +6015,31 @@
         ],
         "title": "PendingCountsRead",
         "description": "Year and month views of the pending-dates calendar: pending Todos per year and per month."
+      },
+      "PersonRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "first_name": {
+            "type": "string",
+            "title": "First Name"
+          },
+          "last_name": {
+            "type": "string",
+            "title": "Last Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "first_name",
+          "last_name"
+        ],
+        "title": "PersonRead",
+        "description": "A name for display (who assigned / changed). No email or status: shown to Users too."
       },
       "ProfileUpdate": {
         "properties": {
@@ -6116,6 +6554,39 @@
         ],
         "title": "StandardResponse[InviteResultRead]"
       },
+      "StandardResponse_MyAssignmentRead_": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MyAssignmentRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "StandardResponse[MyAssignmentRead]"
+      },
       "StandardResponse_MyPermissionsRead_": {
         "properties": {
           "data": {
@@ -6307,6 +6778,39 @@
           "message"
         ],
         "title": "StandardResponse[PaginatedResponse[HistoryItemRead]]"
+      },
+      "StandardResponse_PaginatedResponse_MyAssignmentRead__": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaginatedResponse_MyAssignmentRead_"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "StandardResponse[PaginatedResponse[MyAssignmentRead]]"
       },
       "StandardResponse_PaginatedResponse_TaskRead__": {
         "properties": {

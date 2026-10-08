@@ -72,6 +72,20 @@ export function toUserMessage(
   return error.requestId ? `${GENERIC} (Ref: ${error.requestId})` : GENERIC;
 }
 
+/**
+ * The record a detail page asked for is not there: unknown or deleted (404), or an id in the URL
+ * that is not an id at all (400 VALIDATION_FAILED on that path parameter, e.g. `user_id`).
+ */
+export function isNotFound(error: unknown, idParameter: string): boolean {
+  if (!(error instanceof ApiError)) return false;
+  if (error.status === 404) return true;
+  return (
+    error.status === 400 &&
+    error.code === "VALIDATION_FAILED" &&
+    error.details.some((d) => d.field === idParameter)
+  );
+}
+
 /** Puts backend field details under their form fields. Returns true if any were applied. */
 export function applyFieldErrors<T extends FieldValues>(
   error: unknown,

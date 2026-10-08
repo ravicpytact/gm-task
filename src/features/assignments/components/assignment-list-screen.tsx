@@ -2,7 +2,7 @@
 
 import { Copy, Plus } from "lucide-react";
 import { useQueryStates } from "nuqs";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toUserMessage } from "@/lib/api";
 import { Can } from "@/lib/auth/client";
 import { formatDate } from "@/lib/format";
@@ -26,18 +26,15 @@ import { useAssignmentList } from "../queries";
 import type { Assignment, AssignmentStatusFilter, Frequency } from "../types";
 import { frequencyText, personName, toAssignmentListQuery } from "../utils";
 import { AssignTaskDialog } from "./assign-task-dialog";
+import { useAssignmentActions } from "./assignment-actions";
 import { AssignmentCard } from "./assignment-card";
-import { AssignmentRowActions, type AssignmentAction } from "./assignment-row-actions";
+import { AssignmentRowActions } from "./assignment-row-actions";
 import { AssignmentStatusBadge, CopiedTag, InactiveTag } from "./assignment-status-badge";
-import { ChangeEndDateDialog } from "./change-end-date-dialog";
-import { ChangeFrequencyDialog } from "./change-frequency-dialog";
 import { CopyAssignmentsDialog } from "./copy-assignments-dialog";
-import { DeassignDialog } from "./deassign-dialog";
 import { TaskPicker } from "@/features/activities";
 import { UserPicker } from "@/features/users";
 
-type OpenDialog =
-  { kind: "assign" } | { kind: "copy" } | { kind: AssignmentAction; assignment: Assignment } | null;
+type OpenDialog = { kind: "assign" } | { kind: "copy" } | null;
 
 /** Screen 19 — Assignment List (Admin). Menu: "Task Assignments". */
 export function AssignmentListScreen() {
@@ -62,10 +59,7 @@ export function AssignmentListScreen() {
     [rows],
   );
 
-  const onAction = useCallback(
-    (kind: AssignmentAction, assignment: Assignment) => setDialog({ kind, assignment }),
-    [],
-  );
+  const { onAction, dialogs } = useAssignmentActions();
 
   const columns = useMemo<DataColumn<Assignment>[]>(
     () => [
@@ -244,18 +238,7 @@ export function AssignmentListScreen() {
 
       {dialog?.kind === "assign" ? <AssignTaskDialog onClose={() => setDialog(null)} /> : null}
       {dialog?.kind === "copy" ? <CopyAssignmentsDialog onClose={() => setDialog(null)} /> : null}
-      {dialog?.kind === "frequency" ? (
-        <ChangeFrequencyDialog
-          assignmentId={dialog.assignment.id}
-          onClose={() => setDialog(null)}
-        />
-      ) : null}
-      {dialog?.kind === "end-date" ? (
-        <ChangeEndDateDialog assignmentId={dialog.assignment.id} onClose={() => setDialog(null)} />
-      ) : null}
-      {dialog?.kind === "deassign" ? (
-        <DeassignDialog assignment={dialog.assignment} onClose={() => setDialog(null)} />
-      ) : null}
+      {dialogs}
     </>
   );
 }

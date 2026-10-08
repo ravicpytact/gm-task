@@ -26,3 +26,6 @@ export const fullName = (user: Pick<User, "first_name" | "last_name">) =>
 
 export const initials = (user: Pick<User, "first_name" | "last_name">) =>
   `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`.toUpperCase();
+
+/** User Detail (contract §5). */
+export const userPath = (userId: string) => `/users/${userId}`;

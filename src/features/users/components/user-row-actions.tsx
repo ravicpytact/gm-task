@@ -21,11 +21,14 @@ export function UserRowActions({
   user,
   isSelf,
   onAction,
+  exclude = [],
 }: {
   user: User;
   /** The signed-in Admin's own row: no deactivate, no delete (USR-R4). */
   isSelf: boolean;
   onAction: (action: UserAction, user: User) => void;
+  /** Actions shown elsewhere on the screen (User Detail has its own Edit button). */
+  exclude?: UserAction[];
 }) {
   const canEdit = useCan(USER_PERMISSIONS.update);
   const canInvite = useCan(USER_PERMISSIONS.invite);
@@ -48,8 +51,10 @@ export function UserRowActions({
     user.status === "INACTIVE" && canUpdateStatus
       ? { action: "activate" as const, label: "Activate", icon: UserCheck }
       : null,
-  ].filter((item) => item !== null);
-  const showDelete = !isSelf && canDelete;
+  ]
+    .filter((item) => item !== null)
+    .filter((item) => !exclude.includes(item.action));
+  const showDelete = !isSelf && canDelete && !exclude.includes("delete");
 
   if (items.length === 0 && !showDelete) return null;
 

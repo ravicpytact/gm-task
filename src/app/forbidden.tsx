@@ -9,7 +9,7 @@ export default function Forbidden() {
       <h1 className="text-2xl font-semibold">You don&apos;t have access to this page</h1>
       <p className="text-muted-foreground">Ask an Admin if you think you should.</p>
       <Button asChild>
-        <Link href={HOME_PATH}>Go to the dashboard</Link>
+        <Link href={HOME_PATH}>Go to Todos</Link>
       </Button>
     </div>
   );

@@ -1,7 +1,8 @@
+import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import type { User } from "../types";
-import { fullName } from "../utils";
+import { fullName, userPath } from "../utils";
 import { UserRowActions, type UserAction } from "./user-row-actions";
 import { UserStatusBadge } from "./user-status-badge";
 
@@ -19,7 +20,9 @@ export function UserCard({
     <Card size="sm">
       <CardContent className="flex items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="truncate font-medium">{fullName(user)}</p>
+          <Link href={userPath(user.id)} className="truncate font-medium hover:underline">
+            {fullName(user)}
+          </Link>
           <p className="truncate type-caption">{user.email}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <UserStatusBadge status={user.status} />

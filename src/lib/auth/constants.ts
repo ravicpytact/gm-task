@@ -13,7 +13,7 @@ export const BACKEND_AUTH_PATHS = {
 export const ACCOUNT_INACTIVE = "ACCOUNT_INACTIVE";
 
 export const LOGIN_PATH = "/login";
-export const HOME_PATH = "/dashboard";
+export const HOME_PATH = "/todos";
 
 /** Why the login screen is shown (?reason=). The auth feature words each one. */
 export type LoginReason =

@@ -189,7 +189,7 @@ test.describe("users, as Admin", () => {
   test("My profile: details read-only where they should be, and the Password tab", async ({
     page,
   }) => {
-    await page.goto("/dashboard");
+    await page.goto("/todos");
     await openAccountMenu(page);
     await page.getByRole("menuitem", { name: "My profile" }).click();
     await expect(page.getByRole("heading", { name: "My profile" })).toBeVisible();

@@ -15,7 +15,7 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import { PendingCalendar, monthOf } from "@/features/assignments";
 
 /**
- * The dashboard's date pill: "Today · 03 Oct 2026". It opens the pending-dates calendar (Screen 07)
+ * The Todos screen's date pill: "Today · 03 Oct 2026". It opens the pending-dates calendar (Screen 07)
  * as a popover on wide screens and a bottom sheet on phones; choosing a day closes it.
  */
 export function DatePickerButton({

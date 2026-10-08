@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Task } from "../types";
+import { taskPath } from "../utils";
 import { TaskRowActions, type TaskAction } from "./task-row-actions";
 import { TaskStatusBadge } from "./task-status-badge";
 
@@ -18,7 +20,9 @@ export function TaskCard({
     <Card size="sm">
       <CardContent className="flex items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="truncate font-medium">{task.name}</p>
+          <Link href={taskPath(task.id)} className="truncate font-medium hover:underline">
+            {task.name}
+          </Link>
           {task.description ? <p className="truncate type-caption">{task.description}</p> : null}
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <TaskStatusBadge status={task.status} />

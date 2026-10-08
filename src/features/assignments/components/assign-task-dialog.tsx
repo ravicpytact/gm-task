@@ -26,8 +26,20 @@ import { DueDatesPreview, FrequencySelect, WeekdayToggle } from "./schedule-inpu
 import { TaskPicker } from "@/features/activities";
 import { UserPicker } from "@/features/users";
 
+/** A task or a person already chosen: opened from Task Detail ("Assign") or User Detail. */
+export type AssignPreset = {
+  task?: { id: string; name: string };
+  user?: { id: string; name: string };
+};
+
 /** Screen 20 — Assign Task: one task to one, several or all active users (contract §7). */
-export function AssignTaskDialog({ onClose }: { onClose: () => void }) {
+export function AssignTaskDialog({
+  onClose,
+  preset = {},
+}: {
+  onClose: () => void;
+  preset?: AssignPreset;
+}) {
   const [result, setResult] = useState<AssignResult | null>(null);
 
   return (
@@ -44,7 +56,7 @@ export function AssignTaskDialog({ onClose }: { onClose: () => void }) {
         {result ? (
           <AssignResultView result={result} onDone={onClose} />
         ) : (
-          <AssignForm onAssigned={setResult} onCancel={onClose} />
+          <AssignForm preset={preset} onAssigned={setResult} onCancel={onClose} />
         )}
       </DialogContent>
     </Dialog>
@@ -52,9 +64,11 @@ export function AssignTaskDialog({ onClose }: { onClose: () => void }) {
 }
 
 function AssignForm({
+  preset,
   onAssigned,
   onCancel,
 }: {
+  preset: AssignPreset;
   onAssigned: (result: AssignResult) => void;
   onCancel: () => void;
 }) {
@@ -65,9 +79,9 @@ function AssignForm({
   const form = useForm<AssignValues>({
     resolver: zodResolver(assignSchema(today)),
     defaultValues: {
-      task_id: "",
+      task_id: preset.task?.id ?? "",
       all_users: false,
-      user_ids: [],
+      user_ids: preset.user ? [preset.user.id] : [],
       weekdays: [],
       start_date: today,
       end_date: "",
@@ -115,6 +129,7 @@ function AssignForm({
               placeholder="Choose a task"
               value={f.value || null}
               onChange={(id) => f.onChange(id ?? "")}
+              knownLabels={preset.task ? { [preset.task.id]: preset.task.name } : undefined}
             />
           )}
         />
@@ -133,6 +148,7 @@ function AssignForm({
                 disabled={allUsers}
                 value={allUsers ? [] : f.value}
                 onChange={f.onChange}
+                knownLabels={preset.user ? { [preset.user.id]: preset.user.name } : undefined}
               />
             )}
           />

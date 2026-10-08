@@ -13,11 +13,13 @@ import {
   assignTask,
   copyAssignments,
   getAssignment,
+  getMyAssignment,
   getPendingCounts,
   getTodoCalendar,
   getTodoSummary,
   listAssignments,
   listAllHistory,
+  listMyAssignments,
   listMyHistory,
   listMyTasks,
   listMyTodos,
@@ -31,6 +33,7 @@ import type {
   AssignmentUpdate,
   CopyRequest,
   DueDatesQuery,
+  MyAssignmentListQuery,
   MyHistoryQuery,
   TodoAnswer,
   TodoListQuery,
@@ -43,6 +46,9 @@ export const assignmentKeys = {
   details: () => [...assignmentKeys.all, "detail"] as const,
   detail: (id: string) => [...assignmentKeys.details(), id] as const,
   dueDates: (query: DueDatesQuery) => [...assignmentKeys.all, "due-dates", query] as const,
+  /** My tasks (a User's own assignments). */
+  mine: (query: MyAssignmentListQuery) => [...assignmentKeys.all, "mine", query] as const,
+  myDetail: (id: string) => [...assignmentKeys.all, "mine-detail", id] as const,
 };
 
 export const assignmentQueries = {
@@ -59,6 +65,17 @@ export const assignmentQueries = {
       queryFn: () => getAssignment(browserApi, id),
       staleTime: 0,
     }),
+  mine: (query: MyAssignmentListQuery) =>
+    queryOptions({
+      queryKey: assignmentKeys.mine(query),
+      queryFn: () => listMyAssignments(browserApi, query),
+      placeholderData: keepPreviousData,
+    }),
+  myDetail: (id: string) =>
+    queryOptions({
+      queryKey: assignmentKeys.myDetail(id),
+      queryFn: () => getMyAssignment(browserApi, id),
+    }),
   dueDates: (query: DueDatesQuery) =>
     queryOptions({
       queryKey: assignmentKeys.dueDates(query),
@@ -72,6 +89,9 @@ export const useAssignmentList = (query: AssignmentListQuery) =>
   useQuery(assignmentQueries.list(query));
 export const useAssignment = (id: string | null) =>
   useQuery({ ...assignmentQueries.detail(id ?? ""), enabled: id !== null });
+export const useMyAssignments = (query: MyAssignmentListQuery) =>
+  useQuery(assignmentQueries.mine(query));
+export const useMyAssignment = (id: string) => useQuery(assignmentQueries.myDetail(id));
 /** `null` while the schedule is incomplete: nothing is asked of the server. */
 export const useDueDates = (query: DueDatesQuery | null) =>
   useQuery({
@@ -79,7 +99,7 @@ export const useDueDates = (query: DueDatesQuery | null) =>
     enabled: query !== null,
   });
 
-// Assigning, changing and copying create or remove Todos, which the dashboards, calendars, history
+// Assigning, changing and copying create or remove Todos, which the Todos screens, calendars, history
 // and reports of the users involved show: refresh all server data (FE-DATA-003).
 
 export function useAssignTask() {

@@ -9,6 +9,22 @@ export const credentials = {
 export const SESSION_FILE = "e2e/.auth/session.json";
 
 /**
+ * Optional: an account with the User role (E2E_USER_EMAIL / E2E_USER_PASSWORD), for screens only
+ * Users have (My tasks). Without it those tests are skipped. Never an Admin.
+ */
+export const userCredentials = {
+  email: process.env.E2E_USER_EMAIL ?? "",
+  password: process.env.E2E_USER_PASSWORD ?? "",
+};
+export const USER_SESSION_FILE = "e2e/.auth/user-session.json";
+
+/** For a describe block of tests signed in as the User account (see userCredentials). */
+export function useUserSession() {
+  test.skip(!userCredentials.email || !userCredentials.password, "No E2E User account configured");
+  test.use({ storageState: USER_SESSION_FILE });
+}
+
+/**
  * For a describe block of signed-in tests: reuse the setup's session instead of signing in.
  * (Skips are decided before setup runs, so they depend on the credentials, not on the file.)
  */
@@ -26,7 +42,7 @@ export function requireCredentials() {
 export const uniqueEmail = (label: string) => `e2e-${label}-${Date.now()}@example.com`;
 
 /** A real sign-in. Only for tests about signing in or out; others use the saved session. */
-export async function signIn(page: Page, next = "/dashboard") {
+export async function signIn(page: Page, next = "/todos") {
   await page.goto(next);
   await expect(page).toHaveURL(/\/login/);
   await page.getByLabel("Email").fill(credentials.email);

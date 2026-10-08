@@ -1,10 +1,11 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useQueryStates } from "nuqs";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toUserMessage } from "@/lib/api";
-import { Can, useSession } from "@/lib/auth/client";
+import { Can } from "@/lib/auth/client";
 import { formatDateTime } from "@/lib/format";
 import { DataTable, type DataColumn } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -13,26 +14,17 @@ import { SearchInput } from "@/components/data-table/search-input";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { TableSkeleton } from "@/components/feedback/skeletons";
-import { toast } from "@/components/feedback/toast";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { STATUS_LABELS, USER_PERMISSIONS, USER_STATUSES, userListParsers } from "../constants";
-import { useResendInvitation, useRoles, useSendPasswordLink, useUserList } from "../queries";
+import { useRoles, useUserList } from "../queries";
 import type { RoleCode, User } from "../types";
-import { fullName, toUserListQuery } from "../utils";
-import { ChangeStatusDialog } from "./change-status-dialog";
-import { DeleteUserDialog } from "./delete-user-dialog";
-import { EditUserDialog } from "./edit-user-dialog";
+import { fullName, toUserListQuery, userPath } from "../utils";
 import { InviteUserDialog } from "./invite-user-dialog";
+import { useUserActions } from "./user-actions";
 import { UserCard } from "./user-card";
-import { UserRowActions, type UserAction } from "./user-row-actions";
+import { UserRowActions } from "./user-row-actions";
 import { UserStatusBadge } from "./user-status-badge";
-
-type OpenDialog =
-  | { kind: "edit"; user: User }
-  | { kind: "status"; user: User; target: "ACTIVE" | "INACTIVE" }
-  | { kind: "delete"; user: User }
-  | null;
 
 /** Screen 12 — User List (Admin). */
 export function UserListScreen() {
@@ -40,48 +32,11 @@ export function UserListScreen() {
   const query = toUserListQuery(params);
   const list = useUserList(query);
   const roles = useRoles();
-  const selfId = useSession().data?.user.id;
-  const resend = useResendInvitation();
-  const passwordLink = useSendPasswordLink();
+  const { onAction, dialogs, selfId } = useUserActions();
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [dialog, setDialog] = useState<OpenDialog>(null);
 
   const filtered = Boolean(params.search || params.status || params.role);
   const clearFilters = () => void setParams({ search: "", status: null, role: null, page: 1 });
-
-  const { mutate: resendInvitation } = resend;
-  const { mutate: sendPasswordLink } = passwordLink;
-  const onAction = useCallback(
-    (action: UserAction, user: User) => {
-      switch (action) {
-        case "edit":
-          setDialog({ kind: "edit", user });
-          break;
-        case "resend":
-          resendInvitation(user.id, {
-            onSuccess: () => toast.success(`Invitation sent to ${user.email}`),
-            onError: (error) => toast.error(toUserMessage(error)),
-          });
-          break;
-        case "password-link":
-          sendPasswordLink(user.id, {
-            onSuccess: () => toast.success(`Password link sent to ${user.email}`),
-            onError: (error) => toast.error(toUserMessage(error)),
-          });
-          break;
-        case "deactivate":
-          setDialog({ kind: "status", user, target: "INACTIVE" });
-          break;
-        case "activate":
-          setDialog({ kind: "status", user, target: "ACTIVE" });
-          break;
-        case "delete":
-          setDialog({ kind: "delete", user });
-          break;
-      }
-    },
-    [resendInvitation, sendPasswordLink],
-  );
 
   const columns = useMemo<DataColumn<User>[]>(
     () => [
@@ -89,7 +44,11 @@ export function UserListScreen() {
         id: "name",
         header: "Name",
         sortKey: "first_name",
-        cell: (u) => <span className="font-medium">{fullName(u)}</span>,
+        cell: (u) => (
+          <Link href={userPath(u.id)} className="font-medium hover:underline">
+            {fullName(u)}
+          </Link>
+        ),
       },
       { id: "email", header: "Email", sortKey: "email", cell: (u) => u.email },
       { id: "role", header: "Role", cell: (u) => u.role.name },
@@ -191,23 +150,7 @@ export function UserListScreen() {
       )}
 
       <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />
-      {dialog?.kind === "edit" ? (
-        <EditUserDialog
-          user={dialog.user}
-          isSelf={dialog.user.id === selfId}
-          onClose={() => setDialog(null)}
-        />
-      ) : null}
-      {dialog?.kind === "status" ? (
-        <ChangeStatusDialog
-          user={dialog.user}
-          target={dialog.target}
-          onClose={() => setDialog(null)}
-        />
-      ) : null}
-      {dialog?.kind === "delete" ? (
-        <DeleteUserDialog user={dialog.user} onClose={() => setDialog(null)} />
-      ) : null}
+      {dialogs}
     </>
   );
 }

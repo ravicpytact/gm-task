@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: APP_NAME,
     short_name: APP_NAME,
     description: APP_TAGLINE,
-    start_url: "/dashboard",
+    start_url: "/todos",
     display: "standalone",
     // waiver FE-UI-001: the manifest is read by the browser and OS, not CSS; tokens can't reach it (expires 2027-10-05)
     background_color: "#F8FAFC",

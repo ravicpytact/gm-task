@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { registerStoreReset } from "@/lib/stores/registry";
 import type { AnswerDraft } from "./utils";
 
-// Answers chosen on the dashboard but not yet submitted (contract §3: choose, then Submit). Client
+// Answers chosen on the Todos screen but not yet submitted (contract §3: choose, then Submit). Client
 // state only: shared by the table and the phone cards, kept while the day, filter or page changes,
 // cleared on sign-out (FE-DATA-006) because it is the signed-in person's data.
 

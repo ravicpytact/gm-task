@@ -2,10 +2,11 @@
 // Each item carries the permission code that shows it (FE-AUTH-005); the backend still enforces.
 import {
   BarChart3,
+  ClipboardCheck,
   ClipboardList,
   History,
-  LayoutDashboard,
   ListChecks,
+  ListTodo,
   UserRound,
   Users,
   type LucideIcon,
@@ -37,7 +38,15 @@ export type NavItem = {
 };
 
 export const NAVIGATION: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, mobile: true },
+  { label: "Todos", href: "/todos", icon: ListTodo, mobile: true },
+  {
+    // Users only: the Admin role does not have this permission (decision 2026-10-08).
+    label: "My tasks",
+    href: "/my-tasks",
+    icon: ClipboardCheck,
+    permission: "assignments.assignment.read_own",
+    mobile: true,
+  },
   { label: "Users", href: "/users", icon: Users, permission: "users.user.read_all" },
   { label: "Tasks", href: "/tasks", icon: ListChecks, permission: "activities.task.read_all" },
   {

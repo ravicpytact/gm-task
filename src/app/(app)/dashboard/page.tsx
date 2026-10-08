@@ -1,14 +1,13 @@
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { prefetchDashboard } from "@/features/assignments/server";
-import { DashboardScreen } from "@/features/dashboard";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Dashboard" };
-
+// The Dashboard is now Todos (decision 2026-10-08); old bookmarks keep working, with their ?date=.
 export default async function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
-  const queryClient = await prefetchDashboard(await searchParams);
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <DashboardScreen />
-    </HydrationBoundary>
-  );
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(await searchParams)) {
+    for (const v of Array.isArray(value) ? value : value === undefined ? [] : [value]) {
+      query.append(key, v);
+    }
+  }
+  const search = query.toString();
+  redirect(search ? `/todos?${search}` : "/todos");
 }

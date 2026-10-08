@@ -8,6 +8,8 @@ export const ASSIGNMENT_PERMISSIONS = {
   create: "assignments.assignment.create",
   update: "assignments.assignment.update",
   copy: "assignments.assignment.copy",
+  /** My tasks: the User role only; Admins don't have it (decision 2026-10-08). */
+  readOwn: "assignments.assignment.read_own",
 } as const;
 
 /** History: everyone's (Admins) or only one's own. */
@@ -81,7 +83,7 @@ export const ASSIGNMENT_MESSAGES = {
 export const TODOS_PAGE_SIZE = 20;
 
 /**
- * The dashboard's Todo list (contract §1–2). No date means today as the server counts it, so the
+ * The Todos screen's Todo list (contract §1–2). No date means today as the server counts it, so the
  * default never depends on the browser's clock.
  */
 export const todoListParsers = {
@@ -111,3 +113,39 @@ export const TODO_MESSAGES = {
 
 /** The "Other" choice of a Number Todo, while its value is being typed (never sent as such). */
 export const OTHER_CHOICE = "__other__";
+
+// --- Detail pages and My tasks (contract §11–12; users §5, activities §6) ---------------------
+
+/** The tabs of User Detail and Task Detail. */
+export const DETAIL_TABS = ["assignments", "history"] as const;
+
+/**
+ * User and Task Detail: the open tab and its filters, in the URL (FE-DATA-004) so a link opens the
+ * same view. One set for both tabs; switching tabs clears the filters. `user` filters History on
+ * Task Detail, `task` filters it on User Detail.
+ */
+export const detailParsers = {
+  tab: parseAsStringLiteral(DETAIL_TABS).withDefault("assignments"),
+  status: parseAsStringLiteral(STATUS_FILTERS).withDefault("ACTIVE"),
+  frequency: parseAsStringLiteral(FREQUENCIES),
+  from: parseAsIsoDay,
+  to: parseAsIsoDay,
+  user: parseAsString,
+  task: parseAsString,
+  page: parseAsInteger.withDefault(1),
+};
+
+export const MY_TASKS_PAGE_SIZE = 20;
+
+/** My tasks: Active by default (the API's default is All). */
+export const myTasksParsers = {
+  status: parseAsStringLiteral(STATUS_FILTERS).withDefault("ACTIVE"),
+  page: parseAsInteger.withDefault(1),
+};
+
+/** My Task Detail: the range and page of its history. */
+export const myTaskHistoryParsers = {
+  from: parseAsIsoDay,
+  to: parseAsIsoDay,
+  page: parseAsInteger.withDefault(1),
+};

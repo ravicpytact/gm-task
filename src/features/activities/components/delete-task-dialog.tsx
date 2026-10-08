@@ -10,7 +10,16 @@ import { useDeleteTask, useTask, useTaskDeletePreview } from "../queries";
 import type { Task } from "../types";
 
 /** Screen 18 — Delete Task: the impact first (ACT-R9), then type the name to enable Delete. */
-export function DeleteTaskDialog({ task, onClose }: { task: Task; onClose: () => void }) {
+export function DeleteTaskDialog({
+  task,
+  onClose,
+  onDeleted,
+}: {
+  task: Task;
+  onClose: () => void;
+  /** After a successful delete, before the dialog closes (Task Detail leaves the page). */
+  onDeleted?: (() => void) | undefined;
+}) {
   const current = useTask(task.id);
   const preview = useTaskDeletePreview(task.id);
   const remove = useDeleteTask();
@@ -34,6 +43,7 @@ export function DeleteTaskDialog({ task, onClose }: { task: Task; onClose: () =>
         if (!current.data) return;
         await remove.mutateAsync({ id: task.id, etag: current.data.etag });
         toast.success("Task deleted successfully");
+        onDeleted?.();
       }}
     >
       <DeleteImpact

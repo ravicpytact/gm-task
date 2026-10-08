@@ -19,12 +19,16 @@ export type TaskAction = "edit" | "deactivate" | "activate" | "delete";
 export function TaskRowActions({
   task,
   onAction,
+  exclude = [],
 }: {
   task: Task;
   onAction: (action: TaskAction, task: Task) => void;
+  /** Actions shown elsewhere on the screen (Task Detail has its own Edit button). */
+  exclude?: TaskAction[];
 }) {
   const canUpdate = useCan(TASK_PERMISSIONS.update);
   const canDelete = useCan(TASK_PERMISSIONS.delete);
+  const showEdit = canUpdate && !exclude.includes("edit");
   if (!canUpdate && !canDelete) return null;
 
   return (
@@ -37,9 +41,11 @@ export function TaskRowActions({
       <DropdownMenuContent align="end" className="w-44">
         {canUpdate ? (
           <>
-            <DropdownMenuItem onSelect={() => onAction("edit", task)}>
-              <Pencil aria-hidden /> Edit
-            </DropdownMenuItem>
+            {showEdit ? (
+              <DropdownMenuItem onSelect={() => onAction("edit", task)}>
+                <Pencil aria-hidden /> Edit
+              </DropdownMenuItem>
+            ) : null}
             {task.status === "ACTIVE" ? (
               <DropdownMenuItem onSelect={() => onAction("deactivate", task)}>
                 <PowerOff aria-hidden /> Deactivate

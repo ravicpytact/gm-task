@@ -580,6 +580,46 @@ export interface paths {
     patch: operations["update_assignment_v1_assignments__assignment_id__patch"];
     trace?: never;
   };
+  "/v1/me/assignments": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Purpose of this API is to list my tasks (my own assignments)
+     * @description Users only (assignments.assignment.read_own). Read-only. Status ALL by default (ACTIVE, ENDED); Active first, then task name. Each item has the task (with description), the schedule, the next 3 due dates, and the names of who assigned and last changed it.
+     */
+    get: operations["my_assignments_v1_me_assignments_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/me/assignments/{assignment_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Purpose of this API is to get one of my tasks
+     * @description Users only (assignments.assignment.read_own). 404 if it does not exist or is someone else's. For its history call GET /v1/me/history?task_id=…
+     */
+    get: operations["my_assignment_v1_me_assignments__assignment_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/me/todos": {
     parameters: {
       query?: never;
@@ -1349,6 +1389,66 @@ export interface components {
       pending: number;
     };
     /**
+     * MyAssignmentRead
+     * @description GET /v1/me/assignments: My tasks (Users). Read-only, so no version. Names instead of ids for
+     *     who assigned / changed it, because a User cannot read other users.
+     */
+    MyAssignmentRead: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      task: components["schemas"]["MyAssignmentTaskRead"];
+      /** Frequency */
+      frequency: string;
+      /** Weekdays */
+      weekdays: string[];
+      /**
+       * Start Date
+       * Format: date
+       */
+      start_date: string;
+      /** End Date */
+      end_date: string | null;
+      /** Status */
+      status: string;
+      /** Ended Reason */
+      ended_reason: string | null;
+      /** Ended On */
+      ended_on: string | null;
+      /** Next Due Dates */
+      next_due_dates: string[];
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      assigned_by: components["schemas"]["PersonRead"] | null;
+      last_changed_by: components["schemas"]["PersonRead"] | null;
+    };
+    /** MyAssignmentTaskRead */
+    MyAssignmentTaskRead: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Name */
+      name: string;
+      /** Type */
+      type: string;
+      /** Description */
+      description: string | null;
+      /** Status */
+      status: string;
+    };
+    /**
      * MyPermissionsRead
      * @description GET /v1/me/permissions.
      */
@@ -1406,6 +1506,23 @@ export interface components {
     PaginatedResponse_HistoryItemRead_: {
       /** Items */
       items: components["schemas"]["HistoryItemRead"][];
+      /** Total */
+      total: number;
+      /** Page */
+      page: number;
+      /** Page Size */
+      page_size: number;
+      /** Total Pages */
+      total_pages: number;
+      /** Next Page */
+      next_page?: string | null;
+      /** Prev Page */
+      prev_page?: string | null;
+    };
+    /** PaginatedResponse[MyAssignmentRead] */
+    PaginatedResponse_MyAssignmentRead_: {
+      /** Items */
+      items: components["schemas"]["MyAssignmentRead"][];
       /** Total */
       total: number;
       /** Page */
@@ -1511,6 +1628,21 @@ export interface components {
       years: components["schemas"]["YearPending"][];
       /** Months */
       months: components["schemas"]["MonthPending"][];
+    };
+    /**
+     * PersonRead
+     * @description A name for display (who assigned / changed). No email or status: shown to Users too.
+     */
+    PersonRead: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** First Name */
+      first_name: string;
+      /** Last Name */
+      last_name: string;
     };
     /**
      * ProfileUpdate
@@ -1681,6 +1813,13 @@ export interface components {
       message: string;
       error?: components["schemas"]["ErrorInfo"] | null;
     };
+    /** StandardResponse[MyAssignmentRead] */
+    StandardResponse_MyAssignmentRead_: {
+      data?: components["schemas"]["MyAssignmentRead"] | null;
+      /** Message */
+      message: string;
+      error?: components["schemas"]["ErrorInfo"] | null;
+    };
     /** StandardResponse[MyPermissionsRead] */
     StandardResponse_MyPermissionsRead_: {
       data?: components["schemas"]["MyPermissionsRead"] | null;
@@ -1720,6 +1859,13 @@ export interface components {
     /** StandardResponse[PaginatedResponse[HistoryItemRead]] */
     StandardResponse_PaginatedResponse_HistoryItemRead__: {
       data?: components["schemas"]["PaginatedResponse_HistoryItemRead_"] | null;
+      /** Message */
+      message: string;
+      error?: components["schemas"]["ErrorInfo"] | null;
+    };
+    /** StandardResponse[PaginatedResponse[MyAssignmentRead]] */
+    StandardResponse_PaginatedResponse_MyAssignmentRead__: {
+      data?: components["schemas"]["PaginatedResponse_MyAssignmentRead_"] | null;
       /** Message */
       message: string;
       error?: components["schemas"]["ErrorInfo"] | null;
@@ -3297,6 +3443,76 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["StandardResponse_AssignmentRead_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  my_assignments_v1_me_assignments_get: {
+    parameters: {
+      query?: {
+        page?: number;
+        page_size?: number;
+        status?: "ACTIVE" | "ENDED" | "ALL";
+      };
+      header?: {
+        "If-Match"?: string | null;
+        "If-None-Match"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StandardResponse_PaginatedResponse_MyAssignmentRead__"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  my_assignment_v1_me_assignments__assignment_id__get: {
+    parameters: {
+      query?: never;
+      header?: {
+        "If-Match"?: string | null;
+        "If-None-Match"?: string | null;
+      };
+      path: {
+        assignment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StandardResponse_MyAssignmentRead_"];
         };
       };
       /** @description Validation Error */

@@ -18,7 +18,7 @@ export type Weekday = AssignmentCreate["weekdays"][number];
 export type AssignmentStatusFilter = NonNullable<AssignmentListQuery["status"]>;
 export type AssignmentSortField = NonNullable<AssignmentListQuery["sort_by"]>;
 
-// My Todos, the dashboard counts, the calendar and history (contract §1–4).
+// My Todos, the Todos screen counts, the calendar and history (contract §1–4).
 export type Todo = Schemas["TodoRead"];
 export type TodoAnswer = Schemas["TodoAnswer"];
 export type TodoSummary = Schemas["SummaryRead"];
@@ -33,4 +33,10 @@ export type MyHistoryQuery = NonNullable<
 >;
 export type AllHistoryQuery = NonNullable<
   Operations["all_history_v1_history_get"]["parameters"]["query"]
+>;
+
+// My tasks and My Task Detail (contract §11–12): my own assignments, read-only.
+export type MyAssignment = Schemas["MyAssignmentRead"];
+export type MyAssignmentListQuery = NonNullable<
+  Operations["my_assignments_v1_me_assignments_get"]["parameters"]["query"]
 >;

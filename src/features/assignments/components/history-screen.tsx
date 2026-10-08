@@ -1,43 +1,24 @@
 "use client";
 
 import { useQueryStates } from "nuqs";
-import { useId, useMemo, useState } from "react";
+import { useState } from "react";
 import { toUserMessage } from "@/lib/api";
 import { useCan } from "@/lib/auth/client";
-import { formatDate, formatDateTime } from "@/lib/format";
-import { DataTable, type DataColumn } from "@/components/data-table/data-table";
+import { formatDate } from "@/lib/format";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { FilterSelect } from "@/components/data-table/filter-select";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorState } from "@/components/feedback/error-state";
 import { TableSkeleton } from "@/components/feedback/skeletons";
 import { PageHeader } from "@/components/layout/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { TaskPicker, useTaskTypes, type TaskTypeInfo } from "@/features/activities";
+import { TaskPicker } from "@/features/activities";
 import { UserPicker } from "@/features/users";
 import { FREQUENCIES, FREQUENCY_LABELS, HISTORY_PERMISSIONS, historyParsers } from "../constants";
 import { useAllHistory, useMyHistory, useMyTasks } from "../queries";
-import type { Frequency, HistoryItem } from "../types";
-import {
-  answerText,
-  personName,
-  toAllHistoryQuery,
-  toHistoryQuery,
-  todayIso,
-  weekRange,
-} from "../utils";
-
-const frequencyLabel = (f: string) => FREQUENCY_LABELS[f as Frequency] ?? f;
-
-const answerFor = (item: HistoryItem, types: TaskTypeInfo[] | undefined) =>
-  answerText(
-    item,
-    types?.find((t) => t.type === item.task.type),
-  );
+import type { Frequency } from "../types";
+import { personName, toAllHistoryQuery, toHistoryQuery, todayIso, weekRange } from "../utils";
+import { DateRangeInputs, HistoryTable } from "./history-table";
 
 /**
  * History (contract §4–5): completed Todos, newest first. Admins (read_all) see Screen 25 — everyone,
@@ -51,9 +32,6 @@ export function HistoryScreen() {
   const everyone = useAllHistory(toAllHistoryQuery(params, today), allUsers);
   const history = allUsers ? everyone : mine;
   const myTasks = useMyTasks(!allUsers).data?.items ?? [];
-  const types = useTaskTypes().data?.items;
-  const fromId = useId();
-  const toId = useId();
 
   const week = weekRange(today);
   const dateFrom = params.from ?? week.from;
@@ -63,67 +41,17 @@ export function HistoryScreen() {
   );
   const rows = history.data?.items;
 
-  const columns = useMemo<DataColumn<HistoryItem>[]>(
-    () => [
-      {
-        id: "date",
-        header: "Date",
-        cell: (i) => <span className="whitespace-nowrap">{formatDate(i.due_date)}</span>,
-      },
-      ...(allUsers
-        ? [
-            {
-              id: "user",
-              header: "User",
-              cell: (i: HistoryItem) => (i.user ? personName(i.user) : ""),
-            },
-          ]
-        : []),
-      {
-        id: "task",
-        header: "Task",
-        cell: (i) => <span className="font-medium">{i.task.name}</span>,
-      },
-      { id: "frequency", header: "Frequency", cell: (i) => frequencyLabel(i.frequency) },
-      { id: "answer", header: "Answer", cell: (i) => answerFor(i, types) },
-      {
-        id: "completed",
-        header: "Completed",
-        cell: (i) => <span className="whitespace-nowrap">{formatDateTime(i.completed_at)}</span>,
-      },
-    ],
-    [types, allUsers],
-  );
-
   return (
     <>
       <PageHeader title={allUsers ? "History" : "My History"} />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-        <div className="flex gap-3">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={fromId}>From</Label>
-            <Input
-              id={fromId}
-              type="date"
-              value={dateFrom}
-              max={dateTo}
-              onChange={(e) => void setParams({ from: e.target.value || null, page: 1 })}
-              className="w-40"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={toId}>To</Label>
-            <Input
-              id={toId}
-              type="date"
-              value={dateTo}
-              min={dateFrom}
-              onChange={(e) => void setParams({ to: e.target.value || null, page: 1 })}
-              className="w-40"
-            />
-          </div>
-        </div>
+        <DateRangeInputs
+          from={dateFrom}
+          to={dateTo}
+          onFromChange={(from) => void setParams({ from, page: 1 })}
+          onToChange={(to) => void setParams({ to, page: 1 })}
+        />
         {allUsers ? (
           <>
             <div className="w-full sm:w-56">
@@ -201,30 +129,12 @@ export function HistoryScreen() {
         />
       ) : (
         <>
-          <DataTable
+          <HistoryTable
+            items={history.data.items}
             caption={allUsers ? "Completed Todos" : "My completed Todos"}
-            rows={history.data.items}
-            columns={columns}
-            getRowId={(i) => i.todo_id}
+            showUser={allUsers}
+            showTask
             refreshing={history.isFetching}
-            renderCard={(i) => (
-              <Card size="sm">
-                <CardContent className="flex flex-col gap-1">
-                  <p className="type-caption">
-                    {formatDate(i.due_date)}
-                    {i.user ? ` · ${personName(i.user)}` : ""}
-                  </p>
-                  <p className="flex flex-wrap items-center gap-2 font-medium">
-                    {i.task.name}
-                    <Badge variant="secondary">{frequencyLabel(i.frequency)}</Badge>
-                  </p>
-                  <p className="text-sm">
-                    Answer: <strong>{answerFor(i, types)}</strong>
-                  </p>
-                  <p className="type-caption">Completed {formatDateTime(i.completed_at)}</p>
-                </CardContent>
-              </Card>
-            )}
           />
           <DataTablePagination
             page={history.data.page}

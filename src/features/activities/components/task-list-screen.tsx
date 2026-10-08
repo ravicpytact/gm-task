@@ -1,8 +1,9 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useQueryStates } from "nuqs";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toUserMessage } from "@/lib/api";
 import { Can } from "@/lib/auth/client";
 import { formatDateTime } from "@/lib/format";
@@ -24,37 +25,23 @@ import {
 } from "../constants";
 import { useTaskList, useTaskTypes } from "../queries";
 import type { Task, TaskStatus, TaskType } from "../types";
-import { toTaskListQuery, typeLabel } from "../utils";
-import { DeleteTaskDialog } from "./delete-task-dialog";
+import { taskPath, toTaskListQuery, typeLabel } from "../utils";
+import { useTaskActions } from "./task-actions";
 import { TaskCard } from "./task-card";
 import { TaskFormDialog } from "./task-form-dialog";
-import { TaskRowActions, type TaskAction } from "./task-row-actions";
+import { TaskRowActions } from "./task-row-actions";
 import { TaskStatusBadge } from "./task-status-badge";
-import { TaskStatusDialog } from "./task-status-dialog";
-
-type OpenDialog =
-  | { kind: "create" }
-  | { kind: "edit"; task: Task }
-  | { kind: "status"; task: Task; target: "ACTIVE" | "INACTIVE" }
-  | { kind: "delete"; task: Task }
-  | null;
 
 /** Screen 16 — Task List (Admin). On screen the word is always "Task". */
 export function TaskListScreen() {
   const [params, setParams] = useQueryStates(taskListParsers);
   const list = useTaskList(toTaskListQuery(params));
   const types = useTaskTypes().data?.items;
-  const [dialog, setDialog] = useState<OpenDialog>(null);
+  const [creating, setCreating] = useState(false);
+  const { onAction, dialogs } = useTaskActions();
 
   const filtered = Boolean(params.search || params.type || params.status);
   const clearFilters = () => void setParams({ search: "", type: null, status: null, page: 1 });
-
-  const onAction = useCallback((action: TaskAction, task: Task) => {
-    if (action === "edit") setDialog({ kind: "edit", task });
-    else if (action === "deactivate") setDialog({ kind: "status", task, target: "INACTIVE" });
-    else if (action === "activate") setDialog({ kind: "status", task, target: "ACTIVE" });
-    else setDialog({ kind: "delete", task });
-  }, []);
 
   const columns = useMemo<DataColumn<Task>[]>(
     () => [
@@ -62,7 +49,11 @@ export function TaskListScreen() {
         id: "name",
         header: "Name",
         sortKey: "name",
-        cell: (t) => <span className="font-medium">{t.name}</span>,
+        cell: (t) => (
+          <Link href={taskPath(t.id)} className="font-medium hover:underline">
+            {t.name}
+          </Link>
+        ),
       },
       {
         id: "description",
@@ -104,7 +95,7 @@ export function TaskListScreen() {
         title="Tasks"
         actions={
           <Can code={TASK_PERMISSIONS.create}>
-            <Button onClick={() => setDialog({ kind: "create" })}>
+            <Button onClick={() => setCreating(true)}>
               <Plus aria-hidden /> Create task
             </Button>
           </Can>
@@ -151,7 +142,7 @@ export function TaskListScreen() {
             title="No tasks yet. Create your first task."
             action={
               <Can code={TASK_PERMISSIONS.create}>
-                <Button onClick={() => setDialog({ kind: "create" })}>
+                <Button onClick={() => setCreating(true)}>
                   <Plus aria-hidden /> Create task
                 </Button>
               </Can>
@@ -186,22 +177,8 @@ export function TaskListScreen() {
         </>
       )}
 
-      {dialog?.kind === "create" ? (
-        <TaskFormDialog taskId={null} onClose={() => setDialog(null)} />
-      ) : null}
-      {dialog?.kind === "edit" ? (
-        <TaskFormDialog taskId={dialog.task.id} onClose={() => setDialog(null)} />
-      ) : null}
-      {dialog?.kind === "status" ? (
-        <TaskStatusDialog
-          task={dialog.task}
-          target={dialog.target}
-          onClose={() => setDialog(null)}
-        />
-      ) : null}
-      {dialog?.kind === "delete" ? (
-        <DeleteTaskDialog task={dialog.task} onClose={() => setDialog(null)} />
-      ) : null}
+      {creating ? <TaskFormDialog taskId={null} onClose={() => setCreating(false)} /> : null}
+      {dialogs}
     </>
   );
 }

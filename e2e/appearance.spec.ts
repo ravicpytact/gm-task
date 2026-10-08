@@ -9,7 +9,7 @@ test.describe("appearance", () => {
 
   test("the account menu switches mode and colour theme, and they stay", async ({ page }) => {
     const html = page.locator("html");
-    await page.goto("/dashboard");
+    await page.goto("/todos");
     await expect(html).toHaveAttribute("data-accent", "indigo");
 
     await page.getByRole("button", { name: /Account menu/ }).click();

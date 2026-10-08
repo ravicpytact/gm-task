@@ -7,17 +7,24 @@ import {
   getTodoSummary,
   listAssignments,
   listAllHistory,
+  listMyAssignments,
   listMyHistory,
   listMyTasks,
   listMyTodos,
 } from "./api";
-import { assignmentListParsers, historyParsers, todoListParsers } from "./constants";
+import {
+  assignmentListParsers,
+  historyParsers,
+  myTasksParsers,
+  todoListParsers,
+} from "./constants";
 import { assignmentQueries, todoQueries } from "./queries";
 import {
   monthOf,
   toAllHistoryQuery,
   toAssignmentListQuery,
   toHistoryQuery,
+  toMyAssignmentListQuery,
   toTodoListQuery,
   todayIso,
 } from "./utils";
@@ -43,8 +50,8 @@ type SearchParams = Record<string, string | string[] | undefined>;
 const loadTodoListParams = createLoader(todoListParsers);
 const loadHistoryParams = createLoader(historyParsers);
 
-/** Dashboard: the Todo list, the counts and the calendar of the chosen day (today by default). */
-export async function prefetchDashboard(searchParams: SearchParams) {
+/** Todos: the Todo list, the counts and the calendar of the chosen day (today by default). */
+export async function prefetchTodos(searchParams: SearchParams) {
   const params = loadTodoListParams(searchParams);
   const query = toTodoListQuery(params);
   const month = params.date ? monthOf(params.date) : null;
@@ -88,5 +95,19 @@ export async function prefetchHistory(searchParams: SearchParams, allUsers: bool
     }),
     queryClient.prefetchQuery({ ...todoQueries.myTasks(), queryFn: () => listMyTasks(api) }),
   ]);
+  return queryClient;
+}
+
+const loadMyTasksParams = createLoader(myTasksParsers);
+
+/** My tasks (Users): the list as the URL asks for it, Active by default. */
+export async function prefetchMyTasks(searchParams: SearchParams) {
+  const query = toMyAssignmentListQuery(loadMyTasksParams(searchParams));
+  const api = await getServerApi();
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery({
+    ...assignmentQueries.mine(query),
+    queryFn: () => listMyAssignments(api, query),
+  });
   return queryClient;
 }
